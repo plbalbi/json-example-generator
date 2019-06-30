@@ -74,11 +74,9 @@ func newLexer(inputStream string) *lexer {
 
 //typeDefinitionOpeningState lexes the whole struct definition string 'type ID struct {'
 func typeDefinitionOpeningState(lex *lexer) tokenType {
-	// Lex 'type' type identifier
 	if lex.scanAndLog() != TYPE_TOKEN_STRING {
 		return 0
 	}
-	// Lex type identifier
 	// TODO: Add keywords restrictions
 	typeIdentifier := lex.scanAndLog()
 	lex.currentSymType.value = typeIdentifier
@@ -89,6 +87,14 @@ func typeDefinitionOpeningState(lex *lexer) tokenType {
 		return 0
 	}
 	// //TODO: Push real state. This is for testing
-	lex.states.Push(typeDefinitionOpeningState)
+	lex.states.Push(typeDefinitionClosingState)
 	return TypeOpening
+}
+
+func typeDefinitionClosingState(lex *lexer) tokenType {
+	if lex.scanAndLog() != CLOSE_CBRASE_TOKEN_STRING {
+		return 0
+	}
+	lex.states.Push(typeDefinitionOpeningState)
+	return TypeClosing
 }
