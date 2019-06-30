@@ -9,9 +9,10 @@ import (
 )
 
 type lexer struct {
-	result Result
-	scan   scanner.Scanner
-	states stack.Stack
+	result         Result
+	scan           scanner.Scanner
+	states         stack.Stack
+	currentSymType *yySymType
 }
 
 type Result struct {
@@ -23,7 +24,8 @@ type stateFunction func(*lexer) tokenType
 type tokenType int
 
 // Lex is somehow like the tokenStream.next() called it time it needs by the parser
-func (lex *lexer) Lex(lval *yySymType) int {
+func (lex *lexer) Lex(currentSymType *yySymType) int {
+	lex.currentSymType = currentSymType
 	return int(lex.scanUntilTokenFound())
 }
 
@@ -37,7 +39,9 @@ func (lex *lexer) scanAndLog() {
 
 func (lex *lexer) scanUntilTokenFound() tokenType {
 	stateToRun := lex.states.Pop()
+	// Had to hardcode the stateFunction type in here, no way out
 	if currentStateFunction, ok := stateToRun.(func(*lexer) tokenType); ok {
+		// casting and calling current state
 		return stateFunction(currentStateFunction)(lex)
 	}
 	return 0 // Horrible way, should return some other error instead of EOF
@@ -62,13 +66,17 @@ func structSignatureLookupState(lex *lexer) tokenType {
 	switch tokenText := lex.scan.TokenText(); tokenText {
 	case "type":
 		// Push same state
-		lex.states.Push(structSignatureLookupState)
+		lex.states.Push(identifierParser)
 		return TYPE_TOKEN
-	case "struct":
-		// Push same state
-		lex.states.Push(structSignatureLookupState)
-		return STRUCT_TOKEN
 	default:
 		return 0 // It seems '0' is recognized as an EOF token
 	}
+}
+
+func identifierParser(lex *lexer) tokenType {
+	lex.scanAndLog()
+	tokenText := lex.scan.TokenText()
+	lex.currentSymType.value = tokenText
+	lex.states.Push(structSignatureLookupState)
+	return ID
 }

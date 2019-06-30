@@ -8,6 +8,7 @@ func setResult(l yyLexer, v Result) {
 
 %union{
   declaredStructsCount int
+  value string
 }
 
 %token TYPE_TOKEN STRUCT_TOKEN START_STRUCT_DECL_TOKEN END_STRUCT_DECL_TOKEN
