@@ -3,7 +3,7 @@ package parser
 import "testing"
 
 func TestParserCountsASingleStruct(t *testing.T) {
-	result, err := Parse("type perro")
+	result, err := Parse("type perro struct {")
 	if err != nil {
 		t.Errorf("Test failed with error: %s", err.Error())
 	}
@@ -13,7 +13,7 @@ func TestParserCountsASingleStruct(t *testing.T) {
 }
 
 func TestParserCountsTwoStructs(t *testing.T) {
-	result, err := Parse("type perro type gato")
+	result, err := Parse("type perro struct { type gato struct {")
 	if err != nil {
 		t.Errorf("Test failed with error: %s", err.Error())
 	}

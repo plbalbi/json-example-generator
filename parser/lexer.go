@@ -8,6 +8,11 @@ import (
 	"github.com/golang-collections/collections/stack"
 )
 
+const TYPE_TOKEN_STRING = "type"
+const STRUCT_TOKEN_STRING = "struct"
+const OPEN_CBRASE_TOKEN_STRING = "{"
+const CLOSE_CBRASE_TOKEN_STRING = "}"
+
 type lexer struct {
 	result         Result
 	scan           scanner.Scanner
@@ -36,9 +41,10 @@ func (lex *lexer) Lex(currentSymType *yySymType) int {
 func (lex *lexer) Error(message string) {
 }
 
-func (lex *lexer) scanAndLog() {
+func (lex *lexer) scanAndLog() string {
 	lex.scan.Scan()
 	log.Printf("%s: %s", lex.scan.Position, lex.scan.TokenText())
+	return lex.scan.TokenText()
 }
 
 func (lex *lexer) scanUntilTokenFound() tokenType {
@@ -48,6 +54,7 @@ func (lex *lexer) scanUntilTokenFound() tokenType {
 		// casting and calling current state
 		return stateFunction(currentStateFunction)(lex)
 	}
+	log.Fatal("Failed to cast state to stateFunction type")
 	return 0 // Horrible way, should return some other error instead of EOF
 }
 
@@ -60,31 +67,28 @@ func Parse(inputStream string) (Result, error) {
 
 func newLexer(inputStream string) *lexer {
 	brandNewLexer := &lexer{}
-	brandNewLexer.states.Push(structSignatureLookupState)
 	brandNewLexer.scan.Init(strings.NewReader(inputStream))
+	brandNewLexer.states.Push(typeDefinitionOpeningState)
 	return brandNewLexer
 }
 
-//structSignatureLookupState scans until the next type token is found.
-//Then delegates to the ID scanner lexer state, identifierLexer.
-func structSignatureLookupState(lex *lexer) tokenType {
-	lex.scanAndLog()
-	switch tokenText := lex.scan.TokenText(); tokenText {
-	case "type":
-		// Push same state
-		lex.states.Push(identifierLexer)
-		return TYPE_TOKEN
-	default:
-		return 0 // It seems '0' is recognized as an EOF token
+//typeDefinitionOpeningState lexes the whole struct definition string 'type ID struct {'
+func typeDefinitionOpeningState(lex *lexer) tokenType {
+	// Lex 'type' type identifier
+	if lex.scanAndLog() != TYPE_TOKEN_STRING {
+		return 0
 	}
-}
-
-//identifierLexer scans the next token, which being after a 'type' symbol, is the id
-// of the struct being defined. Also, transmits it to the parser through te SymType.
-func identifierLexer(lex *lexer) tokenType {
-	lex.scanAndLog()
-	tokenText := lex.scan.TokenText()
-	lex.currentSymType.value = tokenText
-	lex.states.Push(structSignatureLookupState)
-	return ID
+	// Lex type identifier
+	// TODO: Add keywords restrictions
+	typeIdentifier := lex.scanAndLog()
+	lex.currentSymType.value = typeIdentifier
+	if lex.scanAndLog() != STRUCT_TOKEN_STRING {
+		return 0
+	}
+	if lex.scanAndLog() != OPEN_CBRASE_TOKEN_STRING {
+		return 0
+	}
+	// //TODO: Push real state. This is for testing
+	lex.states.Push(typeDefinitionOpeningState)
+	return TypeOpening
 }
