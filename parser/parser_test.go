@@ -4,6 +4,9 @@ import (
 	"testing"
 )
 
+// TODO: Make a go-like test infrastructure, in which one is able to just define
+// the string to be parsed, and the expected error (be it nil or the error itself)
+
 func TestParserCountsASingleStruct(t *testing.T) {
 	result, err := Parse("type perro struct { }")
 	if err != nil {
