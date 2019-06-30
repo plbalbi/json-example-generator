@@ -35,4 +35,4 @@ StructDeclarations: StructDeclaration StructDeclarations
   $$ = $2 + 1
 }
 
-StructDeclaration: TYPE_TOKEN
+StructDeclaration: TYPE_TOKEN ID
