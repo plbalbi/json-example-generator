@@ -23,6 +23,11 @@ type Result struct {
 	structsCount int
 }
 
+// TODO: This could be concurrent. The lexer runs on one routine, feeding the parsed tokens into a channel,
+// while the parser consumes from there. Some buffering can be added, so the lexer does not overfill. Also,
+// to communicate the values attached to certain tokens, some kind of tokenWithAttachment struct could be used,
+// and the Lex methods consumes from the channel, and separates the tokenType from the tokenAttachment.
+
 //Lex is somehow like the tokenStream.next() called it time it needs by the parser.
 func (lex *lexer) Lex(currentSymType *yySymType) int {
 	lex.currentSymType = currentSymType
