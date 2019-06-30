@@ -37,7 +37,7 @@ func (lex *lexer) scanAndLog() {
 
 func (lex *lexer) scanUntilTokenFound() tokenType {
 	stateToRun := lex.states.Pop()
-	if currentStateFunction, ok := stateToRun.(stateFunction); ok {
+	if currentStateFunction, ok := stateToRun.(func(*lexer) tokenType); ok {
 		return stateFunction(currentStateFunction)(lex)
 	}
 	return 0 // Horrible way, should return some other error instead of EOF
