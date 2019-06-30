@@ -7,20 +7,32 @@ func setResult(l yyLexer, v Result) {
 %}
 
 %union{
+  declaredStructsCount int
 }
 
 %token TYPE_TOKEN STRUCT_TOKEN START_STRUCT_DECL_TOKEN END_STRUCT_DECL_TOKEN
 %token <value> ID
+%type <declaredStructsCount> StructDeclarations
 
 %start main
 
 %%
 
-main: StructDeclaration
+main: StructDeclarations
 {
-    setResult(yylex, Result {
-       structsCount: 1,
-    })
+    setResult(yylex, Result{
+      structsCount: $1,
+      })
 }
 
-StructDeclaration: TYPE_TOKEN ID STRUCT_TOKEN START_STRUCT_DECL_TOKEN END_STRUCT_DECL_TOKEN
+StructDeclarations: StructDeclaration
+{
+  $$ = 1
+}
+
+StructDeclarations: StructDeclaration StructDeclarations
+{
+  $$ = $2 + 1
+}
+
+StructDeclaration: TYPE_TOKEN
