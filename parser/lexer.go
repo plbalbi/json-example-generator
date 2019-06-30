@@ -3,8 +3,10 @@ package parser
 import (
 	"errors"
 	"log"
+	"regexp"
 	"strings"
 	"text/scanner"
+	"unicode/utf8"
 
 	"github.com/golang-collections/collections/stack"
 )
@@ -90,7 +92,7 @@ func typeDefinitionOpeningState(lex *lexer) tokenType {
 		return 0
 	}
 	// //TODO: Push real state. This is for testing
-	lex.states.Push(typeDefinitionClosingState)
+	lex.states.Push(structContentsState)
 	return TypeOpening
 }
 
@@ -100,4 +102,38 @@ func typeDefinitionClosingState(lex *lexer) tokenType {
 	}
 	lex.states.Push(typeDefinitionOpeningState)
 	return TypeClosing
+}
+
+// TODO: Handle EOF runes
+func (lex *lexer) skipWhitespace() {
+	spaceRune, _ := utf8.DecodeRuneInString(" ")
+	for {
+		if lex.scan.Peek() != spaceRune {
+			break
+		}
+		lex.scan.Next()
+	}
+}
+
+func structContentsState(lex *lexer) tokenType {
+	lex.skipWhitespace()
+	// If the peeked rune is '}', the struct being defined has no fields
+	endStructPeekableRune, _ := utf8.DecodeRuneInString("}")
+	if lex.scan.Peek() == endStructPeekableRune {
+		return typeDefinitionClosingState(lex)
+	}
+	// Otherwise, lex members
+	lex.states.Push(identifierState)
+	return identifierState(lex)
+}
+
+func identifierState(lex *lexer) tokenType {
+	// TODO: Remove regex from here, completely overkill
+	identifierMatcher := regexp.MustCompile(`^[a-zA-Z]+$`).MatchString
+	identifier := lex.scanAndLog()
+	if !identifierMatcher(identifier) {
+		return 0
+	}
+	lex.states.Push(structContentsState)
+	return Identifier
 }

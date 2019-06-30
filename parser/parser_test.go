@@ -1,6 +1,8 @@
 package parser
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestParserCountsASingleStruct(t *testing.T) {
 	result, err := Parse("type perro struct { }")
@@ -19,5 +21,25 @@ func TestParserCountsTwoStructs(t *testing.T) {
 	}
 	if result.structsCount != 2 {
 		t.Errorf("Expected %d structs to be parsed, but found %d", 2, result.structsCount)
+	}
+}
+
+func TestStructWithOneFieldIsCorrectlyIdentified(t *testing.T) {
+	result, err := Parse("type perro struct { perro gato }")
+	if err != nil {
+		t.Errorf("Test failed with error: %s", err.Error())
+	}
+	if result.structsCount != 1 {
+		t.Errorf("Expected %d structs to be parsed, but found %d", 1, result.structsCount)
+	}
+}
+
+func TestStructWithTwoFieldsIsCorrectlyIdentified(t *testing.T) {
+	result, err := Parse("type perro struct { perro gato atr perro }")
+	if err != nil {
+		t.Errorf("Test failed with error: %s", err.Error())
+	}
+	if result.structsCount != 1 {
+		t.Errorf("Expected %d structs to be parsed, but found %d", 1, result.structsCount)
 	}
 }

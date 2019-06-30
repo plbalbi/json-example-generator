@@ -11,8 +11,7 @@ func setResult(l yyLexer, v Result) {
   value string
 }
 
-%token <value> MemberIdentifier
-%token <value> TypeIdentifier
+%token <value> Identifier
 %token <value> TypeOpening
 %token TypeClosing
 %type <declaredStructsCount> StructDeclarations
@@ -38,4 +37,9 @@ StructDeclarations: StructDeclaration StructDeclarations
   $$ = $2 + 1
 }
 
-StructDeclaration: TypeOpening TypeClosing
+StructDeclaration: TypeOpening TypeMembers TypeClosing
+
+TypeMembers:  
+  | TypeMember TypeMembers
+
+TypeMember: Identifier Identifier
