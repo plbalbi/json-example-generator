@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"log"
 	"strings"
 	"text/scanner"
@@ -15,6 +16,7 @@ const CLOSE_CBRASE_TOKEN_STRING = "}"
 
 type lexer struct {
 	result         Result
+	err            error
 	scan           scanner.Scanner
 	states         stack.Stack
 	currentSymType *yySymType
@@ -39,6 +41,7 @@ func (lex *lexer) Lex(currentSymType *yySymType) int {
 
 // TODO: Implement lexer/parser error handling.
 func (lex *lexer) Error(message string) {
+	lex.err = errors.New(message)
 }
 
 func (lex *lexer) scanAndLog() string {
@@ -62,7 +65,7 @@ func (lex *lexer) scanUntilTokenFound() tokenType {
 func Parse(inputStream string) (Result, error) {
 	lex := newLexer(inputStream)
 	yyParse(lex)
-	return lex.result, nil
+	return lex.result, lex.err
 }
 
 func newLexer(inputStream string) *lexer {
