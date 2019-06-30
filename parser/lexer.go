@@ -15,8 +15,12 @@ func (lex *lexer) Lex(lval *yySymType) int {
 }
 
 // Parse does the actual parsing
-func Parse(input string) (Result, error) {
+func Parse(inputStream string) (Result, error) {
+	lex := &lexer{
+		input: inputStream,
+	}
+
 	return Result{
-		structsCount: 0,
+		structsCount: 1,
 	}, nil
 }

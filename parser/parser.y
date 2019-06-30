@@ -12,7 +12,12 @@ func setResult(l yyLexer, v Result) {
   ch byte
 }
 
-%token <value> ID
+%token <value> Id
+%token TypeDefinitionToken
+%token StructDefinitionToken
+%token StartStructDefinitionToken
+%token EndStructDefinitionToken
+%token IntTypeToken
 
 %start Start
 
@@ -25,13 +30,13 @@ StructDefinitions:
     | StructDefinition StructDefinitions
 
 StructDefinition: 
-    'type' ID 'struct {' StructFields '}'
+    TypeDefinitionToken Id StructDefinitionToken StartStructDefinitionToken StructFields EndStructDefinitionToken
 
 StructFields:
     StructField
     | StructField StructFields
 
 StructField:
-    ID Type
+    Id Type
 
-Type: 'int'
+Type: IntTypeToken
