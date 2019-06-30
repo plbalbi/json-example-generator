@@ -7,36 +7,20 @@ func setResult(l yyLexer, v Result) {
 %}
 
 %union{
-  result Result
-  part string
-  ch byte
 }
 
-%token <value> Id
-%token TypeDefinitionToken
-%token StructDefinitionToken
-%token StartStructDefinitionToken
-%token EndStructDefinitionToken
-%token IntTypeToken
+%token TYPE_TOKEN STRUCT_TOKEN START_STRUCT_DECL_TOKEN END_STRUCT_DECL_TOKEN
+%token <value> ID
 
-%start Start
+%start main
 
 %%
 
-Start: StructDefinitions
+main: StructDeclaration
+{
+    setResult(yylex, Result {
+       structsCount: 1,
+    })
+}
 
-StructDefinitions:
-    StructDefinition 
-    | StructDefinition StructDefinitions
-
-StructDefinition: 
-    TypeDefinitionToken Id StructDefinitionToken StartStructDefinitionToken StructFields EndStructDefinitionToken
-
-StructFields:
-    StructField
-    | StructField StructFields
-
-StructField:
-    Id Type
-
-Type: IntTypeToken
+StructDeclaration: TYPE_TOKEN ID STRUCT_TOKEN START_STRUCT_DECL_TOKEN END_STRUCT_DECL_TOKEN
