@@ -1,48 +1,55 @@
 package parser
 
 import (
+	"log"
 	"testing"
 )
 
-// TODO: Make a go-like test infrastructure, in which one is able to just define
-// the string to be parsed, and the expected error (be it nil or the error itself)
+func TestParser(t *testing.T) {
+	tests := []struct {
+		description     string
+		input           string
+		expectedError   error
+		resultPredicate func(*Result) bool
+	}{
+		{
+			"single struct is parser correctly",
+			"type perro struct { }",
+			nil,
+			func(result *Result) bool { return result.structsCount == 1 },
+		},
+		{
+			"two structs are parsed correctly",
+			"type perro struct { } type gato struct { }",
+			nil,
+			func(result *Result) bool { return result.structsCount == 2 },
+		},
+		{
+			"single structs with one field is parsed correctly",
+			"type perro struct { hola perro }",
+			nil,
+			func(result *Result) bool { return result.structsCount == 1 },
+		},
+		{
+			"single structs with three field is parsed correctly",
+			"type perro struct { hola perro que haces como va }",
+			nil,
+			func(result *Result) bool { return result.structsCount == 1 },
+		},
+	}
 
-func TestParserCountsASingleStruct(t *testing.T) {
-	result, err := Parse("type perro struct { }")
-	if err != nil {
-		t.Errorf("Test failed with error: %s", err.Error())
-	}
-	if result.structsCount != 1 {
-		t.Errorf("Expected %d structs to be parsed, but found %d", 1, result.structsCount)
-	}
-}
-
-func TestParserCountsTwoStructs(t *testing.T) {
-	result, err := Parse("type perro struct { } type gato struct { }")
-	if err != nil {
-		t.Errorf("Test failed with error: %s", err.Error())
-	}
-	if result.structsCount != 2 {
-		t.Errorf("Expected %d structs to be parsed, but found %d", 2, result.structsCount)
-	}
-}
-
-func TestStructWithOneFieldIsCorrectlyIdentified(t *testing.T) {
-	result, err := Parse("type perro struct { perro gato }")
-	if err != nil {
-		t.Errorf("Test failed with error: %s", err.Error())
-	}
-	if result.structsCount != 1 {
-		t.Errorf("Expected %d structs to be parsed, but found %d", 1, result.structsCount)
-	}
-}
-
-func TestStructWithTwoFieldsIsCorrectlyIdentified(t *testing.T) {
-	result, err := Parse("type perro struct { perro gato atr perro }")
-	if err != nil {
-		t.Errorf("Test failed with error: %s", err.Error())
-	}
-	if result.structsCount != 1 {
-		t.Errorf("Expected %d structs to be parsed, but found %d", 1, result.structsCount)
+	for _, testCase := range tests {
+		log.Printf("Running testcase named: %s", testCase.description)
+		result, err := Parse(testCase.input)
+		if err != nil {
+			if testCase.expectedError != nil && err.Error() != testCase.expectedError.Error() {
+				t.Errorf("An error with message '%s' was expected, but got '%s'", testCase.expectedError.Error(), err.Error())
+			} else {
+				t.Errorf("Expected to parse input correctly, but got this error: %s", err.Error())
+			}
+		}
+		if !testCase.resultPredicate(&result) {
+			t.Errorf("Failed to evaluate test predicate")
+		}
 	}
 }
