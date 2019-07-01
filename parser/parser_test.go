@@ -36,6 +36,12 @@ func TestParser(t *testing.T) {
 			nil,
 			func(result *Result) bool { return result.structsCount == 1 },
 		},
+		{
+			"single structs with three field is parsed correctly",
+			"type perro struct { hola []perro }",
+			nil,
+			func(result *Result) bool { return result.structsCount == 1 },
+		},
 	}
 
 	for _, testCase := range tests {

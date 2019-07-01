@@ -7,15 +7,22 @@ import (
 	"strings"
 	"text/scanner"
 
-	"github.com/golang-collections/collections/stack"
+	"github.com/golang-collections/collections/queue"
 )
 
 type lexer struct {
 	result         Result
 	err            error
 	scan           scanner.Scanner
-	states         stack.Stack
 	currentSymType *yySymType
+	itemLeftToEmit queue.Queue
+}
+
+const ErrorToken = 0
+
+type lexedItem struct {
+	itemType int
+	value    string
 }
 
 //Result is the object in which the parser transmits the parsed text.
@@ -30,26 +37,46 @@ type Result struct {
 
 //Lex is somehow like the tokenStream.next() called it time it needs by the parser.
 func (lex *lexer) Lex(currentSymType *yySymType) int {
-	lex.currentSymType = currentSymType
+	if lex.itemLeftToEmit.Len() == 0 {
+		lex.doLex()
+	}
+	// Pop oldest enqueued item
+	oldestLexedItem := lex.itemLeftToEmit.Dequeue().(lexedItem)
+	currentSymType.value = oldestLexedItem.value
+	return oldestLexedItem.itemType
+}
+
+func (lex *lexer) doLex() {
 	lex.scan.Scan()
 	switch scannedTokenText := lex.scan.TokenText(); scannedTokenText {
 	case "type":
-		return TypeToken
+		lex.emitItemOfType(TypeToken)
 	case "struct":
-		return StructToken
+		lex.emitItemOfType(StructToken)
 	case "{":
-		return OpenCurlyBraceToken
+		lex.emitItemOfType(OpenCurlyBraceToken)
 	case "}":
-		return ClosingCurlyBraceToken
+		lex.emitItemOfType(ClosingCurlyBraceToken)
 	default:
 		// TODO: Change this regex for sth else. Too overkill!
+		if strings.HasPrefix(scannedTokenText, "[]") {
+			// It's a list type
+			lex.emitItemOfType(ListTypeToken)
+			scannedTokenText = scannedTokenText[2:]
+		}
 		identifierMatcher := regexp.MustCompile(`^[a-zA-Z]+$`).MatchString
 		if !identifierMatcher(scannedTokenText) {
-			return 0
+			lex.emitItemOfType(ErrorToken)
 		}
-		lex.currentSymType.value = scannedTokenText
-		return Identifier
+		lex.emitItemOfType(Identifier)
 	}
+}
+
+func (lex *lexer) emitItemOfType(emittedItemType int) {
+	lex.itemLeftToEmit.Enqueue(lexedItem{
+		itemType: emittedItemType,
+		value:    lex.scan.TokenText(),
+	})
 }
 
 // TODO: Implement lexer/parser error handling.

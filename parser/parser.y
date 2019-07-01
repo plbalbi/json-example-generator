@@ -12,7 +12,7 @@ func setResult(l yyLexer, v Result) {
 }
 
 %token <value> Identifier
-%token TypeToken StructToken OpenCurlyBraceToken ClosingCurlyBraceToken
+%token TypeToken StructToken OpenCurlyBraceToken ClosingCurlyBraceToken ListTypeToken
 %type <declaredStructsCount> StructDeclarations
 
 %start main
@@ -36,11 +36,16 @@ StructDeclarations: StructDeclaration StructDeclarations
   $$ = $2 + 1
 }
 
-StructDeclaration: TypeOpening TypeMembers ClosingCurlyBraceToken
+StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
 
-TypeOpening: TypeToken Identifier StructToken OpenCurlyBraceToken
+StructOpening: TypeToken Identifier StructToken OpenCurlyBraceToken
 
-TypeMembers:  
-  | TypeMember TypeMembers
+StructFields:  
+  | Field StructFields
 
-TypeMember: Identifier Identifier
+Field: Identifier FieldType
+
+FieldType: ListOrNot Identifier
+
+ListOrNot:
+  | ListTypeToken
