@@ -57,19 +57,33 @@ func (lex *lexer) doLex() {
 		lex.emitItemOfType(OpenCurlyBraceToken)
 	case "}":
 		lex.emitItemOfType(ClosingCurlyBraceToken)
-	default:
-		// TODO: Change this regex for sth else. Too overkill!
-		if strings.HasPrefix(scannedTokenText, "[]") {
-			// It's a list type
-			lex.emitItemOfType(ListTypeToken)
-			scannedTokenText = scannedTokenText[2:]
-		}
-		identifierMatcher := regexp.MustCompile(`^[a-zA-Z]+$`).MatchString
-		if !identifierMatcher(scannedTokenText) {
+	case "[":
+		// List type definition
+		lex.scan.Scan()
+		if lex.scan.TokenText() != "]" {
 			lex.emitItemOfType(ErrorToken)
 		}
-		lex.emitItemOfType(Identifier)
+		lex.emitItemOfType(ListTypeToken)
+		lex.scan.Scan()
+		lex.lexIdentifier()
+	default:
+		lex.lexIdentifier()
 	}
+}
+
+func (lex *lexer) lexIdentifier() {
+	scannedTokenText := lex.scan.TokenText()
+	// TODO: Change this regex for sth else. Too overkill!
+	if strings.HasPrefix(scannedTokenText, "[]") {
+		// It's a list type
+		lex.emitItemOfType(ListTypeToken)
+		scannedTokenText = scannedTokenText[2:]
+	}
+	identifierMatcher := regexp.MustCompile(`^[a-zA-Z]+$`).MatchString
+	if !identifierMatcher(scannedTokenText) {
+		lex.emitItemOfType(ErrorToken)
+	}
+	lex.emitItemOfType(Identifier)
 }
 
 func (lex *lexer) emitItemOfType(emittedItemType int) {
