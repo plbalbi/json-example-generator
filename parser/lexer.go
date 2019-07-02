@@ -18,7 +18,7 @@ type lexer struct {
 	itemLeftToEmit queue.Queue
 }
 
-const ErrorToken = 0
+const errorToken = 0
 
 type lexedItem struct {
 	itemType int
@@ -73,7 +73,7 @@ func (lex *lexer) doLex() {
 		// List type definition
 		lex.scan.Scan()
 		if lex.scan.TokenText() != "]" {
-			lex.emitItemOfType(ErrorToken)
+			lex.emitItemOfType(errorToken)
 		}
 		lex.emitItemOfType(ListTypeToken)
 		lex.scan.Scan()
@@ -93,7 +93,7 @@ func (lex *lexer) lexIdentifier() {
 	}
 	identifierMatcher := regexp.MustCompile(`^[a-zA-Z]+$`).MatchString
 	if !identifierMatcher(scannedTokenText) {
-		lex.emitItemOfType(ErrorToken)
+		lex.emitItemOfType(errorToken)
 	}
 	lex.emitItemOfType(Identifier)
 }
