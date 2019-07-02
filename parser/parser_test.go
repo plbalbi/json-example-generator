@@ -3,15 +3,12 @@ package parser
 import (
 	"log"
 	"testing"
+
+	"github.com/json-example-generator/model"
 )
 
 func TestParser(t *testing.T) {
-	tests := []struct {
-		description     string
-		input           string
-		expectedError   error
-		resultPredicate func(*Result) bool
-	}{
+	tests := []simpleParserTestCase{
 		{
 			"single struct is parser correctly",
 			"type perro struct { }",
@@ -38,14 +35,26 @@ func TestParser(t *testing.T) {
 		},
 		{
 			"single structs with three field is parsed correctly",
-			"type perro struct { hola []perro }",
+			"type perro struct { hola []int }",
 			nil,
 			func(result *Result) bool { return result.structsCount == 1 },
 		},
 	}
 
 	for _, testCase := range tests {
-		log.Printf("Running testcase named: %s", testCase.description)
+		t.Run(testCase.description, generateSingleParserTest(testCase))
+	}
+}
+
+type simpleParserTestCase struct {
+	description     string
+	input           string
+	expectedError   error
+	resultPredicate func(*Result) bool
+}
+
+func generateSingleParserTest(testCase simpleParserTestCase) func(*testing.T) {
+	return func(t *testing.T) {
 		result, err := Parse(testCase.input)
 		if err != nil {
 			if testCase.expectedError != nil && err.Error() != testCase.expectedError.Error() {
@@ -57,5 +66,14 @@ func TestParser(t *testing.T) {
 		if !testCase.resultPredicate(&result) {
 			t.Errorf("Failed to evaluate test predicate")
 		}
+	}
+}
+
+func TestMapStuff(t *testing.T) {
+	repository := model.GetDefaultDataTypeRepository()
+	nonExistingDataType := repository["caca"]
+	if nonExistingDataType != nil {
+		t.Errorf("Expected repository to return nil on non existing data type")
+		log.Print("hola")
 	}
 }
