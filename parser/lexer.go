@@ -30,6 +30,13 @@ type Result struct {
 	structsCount int
 }
 
+//Parse lexes and parses the file and returns the parsed text.
+func Parse(inputStream string) (Result, error) {
+	lex := newLexer(inputStream)
+	yyParse(lex)
+	return lex.result, lex.err
+}
+
 // TODO: This could be concurrent. The lexer runs on one routine, feeding the parsed tokens into a channel,
 // while the parser consumes from there. Some buffering can be added, so the lexer does not overfill. Also,
 // to communicate the values attached to certain tokens, some kind of tokenWithAttachment struct could be used,
@@ -44,6 +51,11 @@ func (lex *lexer) Lex(currentSymType *yySymType) int {
 	oldestLexedItem := lex.itemLeftToEmit.Dequeue().(lexedItem)
 	currentSymType.value = oldestLexedItem.value
 	return oldestLexedItem.itemType
+}
+
+// TODO: Implement lexer/parser error handling.
+func (lex *lexer) Error(message string) {
+	lex.err = errors.New(message)
 }
 
 func (lex *lexer) doLex() {
@@ -93,23 +105,11 @@ func (lex *lexer) emitItemOfType(emittedItemType int) {
 	})
 }
 
-// TODO: Implement lexer/parser error handling.
-func (lex *lexer) Error(message string) {
-	lex.err = errors.New(message)
-}
-
 // TODO: Log only on some debug mode?
 func (lex *lexer) scanAndLog() string {
 	lex.scan.Scan()
 	log.Printf("%s: %s", lex.scan.Position, lex.scan.TokenText())
 	return lex.scan.TokenText()
-}
-
-//Parse lexes and parses the file and returns the parsed text.
-func Parse(inputStream string) (Result, error) {
-	lex := newLexer(inputStream)
-	yyParse(lex)
-	return lex.result, lex.err
 }
 
 //newLexer creates a brand new lexer object.
