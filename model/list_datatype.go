@@ -15,6 +15,14 @@ type ListDataType struct {
 	innerType DataType
 }
 
+//NewListDataType returns a brand new ListDataType, with a given name and inner type.
+func NewListDataType(aName string, aType DataType) *ListDataType {
+	return &ListDataType{
+		name:      aName,
+		innerType: aType,
+	}
+}
+
 //IsSimple return true if the datatype is a ListDataType.
 func (data *ListDataType) IsSimple() bool {
 	return false

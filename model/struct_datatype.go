@@ -14,6 +14,8 @@ type StructDataType struct {
 	fields structFieldMap
 }
 
+//NewStructDataType returns a brand new StructDataType, with the given name
+//and no fields in it.
 func NewStructDataType(aName string) *StructDataType {
 	return &StructDataType{
 		name:   aName,
@@ -52,6 +54,12 @@ func (data *StructDataType) Generate() string {
 	return randomStructBuffer.String()
 }
 
-func (data *StructDataType) AddFieldNamed(aName string, aType DataType) {
+//TODO: handle errors when:
+//	- already a field with name aName
+//	- circular datatype definitions
+
+//AddFieldNamed adds a new field to the StructDataType.
+func (data *StructDataType) AddFieldNamed(aName string, aType DataType) error {
 	data.fields[aName] = aType
+	return nil
 }
