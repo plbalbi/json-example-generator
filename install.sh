@@ -9,7 +9,8 @@ function logFailureIfNecessary {
 }
 
 go get golang.org/x/tools/cmd/goyacc
-logFailureIfNecessary "Failed to download GoYacc parser generator"
+go get github.com/golang-collections/collections/queue
+logFailureIfNecessary "Failed to get go dependencies"
 
 cd parser
 
