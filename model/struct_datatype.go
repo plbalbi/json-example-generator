@@ -23,6 +23,11 @@ func NewStructDataType(aName string) *StructDataType {
 	}
 }
 
+//GetName shows the datatype's name
+func (data *StructDataType) GetName() string {
+	return data.name
+}
+
 //IsSimple return true if the datatype is a StructDataType.
 func (data *StructDataType) IsSimple() bool {
 	return false

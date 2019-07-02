@@ -23,6 +23,11 @@ func NewListDataType(aName string, aType DataType) *ListDataType {
 	}
 }
 
+//GetName shows the datatype's name
+func (data *ListDataType) GetName() string {
+	return data.name
+}
+
 //IsSimple return true if the datatype is a ListDataType.
 func (data *ListDataType) IsSimple() bool {
 	return false

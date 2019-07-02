@@ -6,6 +6,11 @@ type SimpleDataType struct {
 	generator exampleGenerator
 }
 
+//GetName shows the datatype's name
+func (data *SimpleDataType) GetName() string {
+	return data.name
+}
+
 //IsSimple return true if the datatype is a SimpleDataType.
 func (data *SimpleDataType) IsSimple() bool {
 	return true
