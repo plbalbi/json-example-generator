@@ -5,6 +5,19 @@ package model
 //DataTypeRepository is the central collection of all DataTypes
 type DataTypeRepository map[string]DataType
 
+//Helpers. Maybe the repository should be abstracted
+
+//CountStructDataTypes counts the struct datatypes registered in a repository
+func CountStructDataTypes(repository DataTypeRepository) int {
+	count := 0
+	for _, datatype := range repository {
+		if datatype.IsStruct() {
+			count++
+		}
+	}
+	return count
+}
+
 //TODO: Add SimpleDataType constructor
 //TODO: Improve random generators
 

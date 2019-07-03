@@ -21,14 +21,17 @@ var dataTypeRepository model.DataTypeRepository = model.GetDefaultDataTypeReposi
   newDataType model.DataType
   isList bool
   parsedStructField fieldAndDataType
+  allParsedStructFields []fieldAndDataType
 }
 
 %token <value> Identifier
 %token TypeToken StructToken OpenCurlyBraceToken ClosingCurlyBraceToken ListTypeToken
+%type <value> StructOpening
 %type <declaredStructsCount> StructDeclarations
 %type <parsedStructField> Field
 %type <newDataType> FieldType
 %type <isList> ListOrNot
+%type <allParsedStructFields> StructFields
 
 %start main
 
@@ -53,11 +56,25 @@ StructDeclarations: StructDeclaration StructDeclarations
 }
 
 StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
+{
+  newStructName := $1
+  newStruct := model.NewStructDataType(newStructName)
+  for _,field := range $2 {
+    // Already checked if struct fields datatype's exist
+    newStruct.AddFieldNamed(field.name, field.datatype)
+  }
+  dataTypeRepository[newStructName] = newStruct
+}
 
 StructOpening: TypeToken Identifier StructToken OpenCurlyBraceToken
+{
+  //Pass through struct name
+  //TODO: Maybe fail here if struct already defined?
+  $$ = $2
+}
 
-StructFields:  
-  | Field StructFields
+StructFields:  { $$ = make([]fieldAndDataType, 0) }
+  | Field StructFields { $$ = append($2, $1) }
 
 Field: Identifier FieldType
 {
