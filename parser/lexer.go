@@ -7,9 +7,8 @@ import (
 	"strings"
 	"text/scanner"
 
-	"github.com/plbalbi/json-example-generator/model"
-
 	"github.com/golang-collections/collections/queue"
+	"github.com/plbalbi/json-example-generator/model"
 )
 
 type lexer struct {

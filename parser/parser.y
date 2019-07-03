@@ -18,7 +18,7 @@ var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeReposito
 %union{
   declaredStructsCount int
   value string
-  newDataType model.DataType
+  newDataType string
   isList bool
   parsedStructField fieldAndDataType
   allParsedStructFields []fieldAndDataType
@@ -61,7 +61,7 @@ StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
   newStruct := model.NewStructDataType(newStructName)
   for _,field := range $2 {
     // Already checked if struct fields datatype's exist
-    newStruct.AddFieldNamed(field.name, field.datatype)
+    newStruct.AddFieldNamed(field.name)
   }
   GlobalRepository[newStructName] = newStruct
 }
@@ -80,7 +80,7 @@ Field: Identifier FieldType
 {
   $$ = fieldAndDataType{
     name : $1,
-    datatype : $2,
+    datatypeName : $2,
   }
 }
 
@@ -90,8 +90,9 @@ FieldType: ListOrNot Identifier
   if $1 {
     assembledDataTypeName = fmt.Sprintf("[]%s", assembledDataTypeName)
   }
+  $$ = assembledDataTypeName
   if fromRepository := GlobalRepository[assembledDataTypeName]; fromRepository != nil {
-    $$ = fromRepository
+    //$$ = fromRepository
     log.Printf("Just saw a datatype named: %s", fromRepository.GetName())
   } else {
     if $1 {
@@ -99,7 +100,7 @@ FieldType: ListOrNot Identifier
         newListDataType := model.NewListDataType(assembledDataTypeName, innerFromRepository)
         GlobalRepository[assembledDataTypeName] = newListDataType
         log.Printf("Just created new list datatype named %s", assembledDataTypeName)
-        $$ = newListDataType
+        //$$ = newListDataType
       } else {
         //Notify error
         log.Printf("Could not found inner datatype named: %s", $2)
