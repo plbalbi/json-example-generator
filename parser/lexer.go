@@ -7,6 +7,8 @@ import (
 	"strings"
 	"text/scanner"
 
+	"github.com/plbalbi/json-example-generator/model"
+
 	"github.com/golang-collections/collections/queue"
 )
 
@@ -27,7 +29,8 @@ type lexedItem struct {
 
 //Result is the object in which the parser transmits the parsed text.
 type Result struct {
-	structsCount int
+	structsCount    int
+	typesRepository model.DataTypeRepository
 }
 
 //Parse lexes and parses the file and returns the parsed text.

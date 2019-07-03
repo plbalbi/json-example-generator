@@ -4,7 +4,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/json-example-generator/model"
+	"github.com/plbalbi/json-example-generator/model"
 )
 
 func TestParser(t *testing.T) {
@@ -38,6 +38,18 @@ func TestParser(t *testing.T) {
 			"type perro struct { hola []int }",
 			nil,
 			func(result *Result) bool { return result.structsCount == 1 },
+		},
+		{
+			"struct with list type gets it registered in repository",
+			"type gato struct { hola []string }",
+			nil,
+			func(result *Result) bool { return result.typesRepository["[]string"] != nil },
+		},
+		{
+			"struct with non existing inner type omits registering corresponding list type",
+			"type gato struct { hola []falopa }",
+			nil,
+			func(result *Result) bool { return result.typesRepository["[]falopa"] == nil },
 		},
 	}
 
