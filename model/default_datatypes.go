@@ -30,7 +30,7 @@ func GetDefaultDataTypeRepository() DataTypeRepository {
 	repository["string"] = &SimpleDataType{
 		name: "string",
 		generator: func() string {
-			return "holis"
+			return "\"holis\""
 		},
 	}
 	//int

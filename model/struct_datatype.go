@@ -50,7 +50,7 @@ func (data *StructDataType) Generate() string {
 	printedFieldCounter := 1
 	lastFieldNumber := len(data.fields)
 	for fieldName, fieldType := range data.fields {
-		randomStructBuffer.WriteString(fmt.Sprintf("%s: %s", fieldName, fieldType.Generate()))
+		randomStructBuffer.WriteString(fmt.Sprintf("\"%s\": %s", fieldName, fieldType.Generate()))
 		if printedFieldCounter < lastFieldNumber {
 			randomStructBuffer.WriteString(",")
 		}
