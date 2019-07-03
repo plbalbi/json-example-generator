@@ -1,10 +1,12 @@
 package parser
 
 import (
+	"fmt"
 	"log"
 	"testing"
 
 	"github.com/plbalbi/json-example-generator/model"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestParser(t *testing.T) {
@@ -96,10 +98,44 @@ func TestMapStuff(t *testing.T) {
 
 //TODO: Should find a way to display struct field in the order they are defined.
 func TestRandomJsonGeneration(t *testing.T) {
-	result, _ := Parse(`type test struct {
+	result, err := Parse(`type test struct {
 		nombre string
 		edad int
 		gustosDeHelado []string
 	}`)
-	t.Errorf("Parser got:\n%s", result.typesRepository["test"].Generate())
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	fmt.Println(result.typesRepository["test"].Generate())
+	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
+}
+
+func Test00(t *testing.T) {
+	result, err := Parse(`
+	type test struct {
+		nombre string
+		edad int
+		gustosDeHelado []gusto
+	}
+	`)
+	assert.Error(t, err)
+	assert.NotNil(t, result)
+	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
+}
+
+func Test02(t *testing.T) {
+	result, err := Parse(`
+	type test struct {
+		nombre string
+		edad int
+		gustosDeHelado []gusto
+	}
+	type gusto struct {
+		nombre string
+		granizado bool
+	}
+	`)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	//fmt.Println(result.typesRepository["test"].Generate())
+	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
 }

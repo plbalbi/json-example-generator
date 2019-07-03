@@ -10,6 +10,7 @@ function logFailureIfNecessary {
 
 go get golang.org/x/tools/cmd/goyacc
 go get github.com/golang-collections/collections/queue
+go get github.com/stretchr/testify/assert
 logFailureIfNecessary "Failed to get go dependencies"
 
 cd parser
