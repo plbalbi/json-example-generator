@@ -54,6 +54,7 @@ func (data *StructDataType) Generate() string {
 		if printedFieldCounter < lastFieldNumber {
 			randomStructBuffer.WriteString(",")
 		}
+		printedFieldCounter++
 	}
 	randomStructBuffer.WriteString("}")
 	return randomStructBuffer.String()

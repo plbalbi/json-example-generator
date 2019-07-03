@@ -93,3 +93,13 @@ func TestMapStuff(t *testing.T) {
 		log.Print("hola")
 	}
 }
+
+//TODO: Should find a way to display struct field in the order they are defined.
+func TestRandomJsonGeneration(t *testing.T) {
+	result, _ := Parse(`type test struct {
+		nombre string
+		edad int
+		gustosDeHelado []string
+	}`)
+	t.Errorf("Parser got:\n%s", result.typesRepository["test"].Generate())
+}
