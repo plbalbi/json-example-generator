@@ -11,7 +11,7 @@ func setResult(l yyLexer, v Result) {
   l.(*lexer).result = v
 }
 
-var dataTypeRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
+var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
 
 %}
 
@@ -41,7 +41,7 @@ main: StructDeclarations
 {
     setResult(yylex, Result{
       structsCount: $1,
-      typesRepository: dataTypeRepository,
+      typesRepository: GlobalRepository,
       })
 }
 
@@ -63,7 +63,7 @@ StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
     // Already checked if struct fields datatype's exist
     newStruct.AddFieldNamed(field.name, field.datatype)
   }
-  dataTypeRepository[newStructName] = newStruct
+  GlobalRepository[newStructName] = newStruct
 }
 
 StructOpening: TypeToken Identifier StructToken OpenCurlyBraceToken
@@ -90,14 +90,14 @@ FieldType: ListOrNot Identifier
   if $1 {
     assembledDataTypeName = fmt.Sprintf("[]%s", assembledDataTypeName)
   }
-  if fromRepository := dataTypeRepository[assembledDataTypeName]; fromRepository != nil {
+  if fromRepository := GlobalRepository[assembledDataTypeName]; fromRepository != nil {
     $$ = fromRepository
     log.Printf("Just saw a datatype named: %s", fromRepository.GetName())
   } else {
     if $1 {
-      if innerFromRepository := dataTypeRepository[$2]; innerFromRepository != nil {
+      if innerFromRepository := GlobalRepository[$2]; innerFromRepository != nil {
         newListDataType := model.NewListDataType(assembledDataTypeName, innerFromRepository)
-        dataTypeRepository[assembledDataTypeName] = newListDataType
+        GlobalRepository[assembledDataTypeName] = newListDataType
         log.Printf("Just created new list datatype named %s", assembledDataTypeName)
         $$ = newListDataType
       } else {

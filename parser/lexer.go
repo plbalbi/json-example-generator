@@ -36,6 +36,8 @@ type Result struct {
 //Parse lexes and parses the file and returns the parsed text.
 func Parse(inputStream string) (Result, error) {
 	lex := newLexer(inputStream)
+	//Clearing global repository between parse calls
+	GlobalRepository = model.GetDefaultDataTypeRepository()
 	yyParse(lex)
 	return lex.result, lex.err
 }

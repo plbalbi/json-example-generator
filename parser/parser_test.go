@@ -19,7 +19,11 @@ func TestParser(t *testing.T) {
 			"two structs are parsed correctly",
 			"type perro struct { } type gato struct { }",
 			nil,
-			func(result *Result) bool { return model.CountStructDataTypes(result.typesRepository) == 2 },
+			func(result *Result) bool {
+				return model.CountStructDataTypes(result.typesRepository) == 2 &&
+					result.typesRepository["perro"] != nil &&
+					result.typesRepository["gato"] != nil
+			},
 		},
 		{
 			"single structs with one field is parsed correctly",
@@ -34,7 +38,7 @@ func TestParser(t *testing.T) {
 			func(result *Result) bool { return model.CountStructDataTypes(result.typesRepository) == 1 },
 		},
 		{
-			"single structs with three field is parsed correctly",
+			"single structs single list field is parsed correctly",
 			"type perro struct { hola []int }",
 			nil,
 			func(result *Result) bool { return model.CountStructDataTypes(result.typesRepository) == 1 },
