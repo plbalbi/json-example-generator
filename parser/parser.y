@@ -15,13 +15,14 @@ var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeReposito
 var SeenDataTypes []string = make([]string, 0)
 var Logger = log.Logger{}
 var DeclaredStructs []string
+var LogStream bytes.Buffer
 
 func InitParser(){
-  var logStream bytes.Buffer
+  LogStream = bytes.Buffer{}
 	GlobalRepository = model.GetDefaultDataTypeRepository()
 	SeenDataTypes = make([]string, 0)
   DeclaredStructs = make([]string, 0)
-	Logger.SetOutput(&logStream)
+	Logger.SetOutput(&LogStream)
 }
 
 %}
@@ -49,7 +50,8 @@ main: StructDeclarations
     setResult(yylex, Result{
       declaredStructs: DeclaredStructs,
       typesRepository: GlobalRepository,
-      })
+      logRegistry: LogStream.String(),
+    })
 }
 
 StructDeclarations: StructDeclaration

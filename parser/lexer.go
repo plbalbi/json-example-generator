@@ -30,6 +30,7 @@ type lexedItem struct {
 type Result struct {
 	declaredStructs []string
 	typesRepository model.DataTypeRepository
+	logRegistry     string
 }
 
 func (res *Result) StructsCount() int {
@@ -116,7 +117,7 @@ func (lex *lexer) lexIdentifier() {
 		lex.emitItemOfType(ListTypeToken)
 		scannedTokenText = scannedTokenText[2:]
 	}
-	identifierMatcher := regexp.MustCompile(`^[a-zA-Z]+$`).MatchString
+	identifierMatcher := regexp.MustCompile(`^[a-zA-Z,0-9,_]+$`).MatchString
 	if !identifierMatcher(scannedTokenText) {
 		lex.emitItemOfType(errorToken)
 	}
