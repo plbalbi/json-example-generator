@@ -12,19 +12,19 @@ func setResult(l yyLexer, v Result) {
   l.(*lexer).result = v
 }
 
-var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
 var SeenDataTypes []string = make([]string, 0)
-var Logger = log.Logger{}
-var DeclaredStructs []string
-var LogStream bytes.Buffer
+var globalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
+var logger = log.Logger{}
+var declaredStructs []string
+var logStream bytes.Buffer
 var freshIdentifier int
 
 func InitParser(){
-  LogStream = bytes.Buffer{}
-	GlobalRepository = model.GetDefaultDataTypeRepository()
+  logStream = bytes.Buffer{}
+	globalRepository = model.GetDefaultDataTypeRepository()
 	SeenDataTypes = make([]string, 0)
-  DeclaredStructs = make([]string, 0)
-	Logger.SetOutput(&LogStream)
+  declaredStructs = make([]string, 0)
+	logger.SetOutput(&logStream)
 }
 
 func RegisterNewStruct(name string, fields []fieldAndDataType){
@@ -32,14 +32,14 @@ func RegisterNewStruct(name string, fields []fieldAndDataType){
   for _, field := range fields {
     newStruct.AddFieldNamed(field.name, field.datatypeName)
   }
-  GlobalRepository[name] = newStruct
+  globalRepository[name] = newStruct
 }
 
 func generateFreshIdentifier() string{
   for {
     freshIdentifier += 1
     id := "_f" + strconv.Itoa(freshIdentifier)
-    if GlobalRepository[id] == nil{
+    if globalRepository[id] == nil{
       return id
     }
   }
@@ -69,9 +69,9 @@ func generateFreshIdentifier() string{
 main: StructDeclarations
 {
     setResult(yylex, Result{
-      declaredStructs: DeclaredStructs,
-      typesRepository: GlobalRepository,
-      logRegistry: LogStream.String(),
+      declaredStructs: declaredStructs,
+      typesRepository: globalRepository,
+      logRegistry: logStream.String(),
     })
 }
 
@@ -83,7 +83,7 @@ StructDeclaration: TypeName InlineStructDeclaration
 {
   newStructName := $1
   RegisterNewStruct(newStructName, $2)
-  DeclaredStructs = append(DeclaredStructs, newStructName)
+  declaredStructs = append(declaredStructs, newStructName)
 }
 
 TypeName: TypeToken Identifier
@@ -110,13 +110,13 @@ Field: Identifier FieldType
 FieldType: Identifier
 {
   $$ = $1
-  Logger.Println("saw a simple type", $$)
+  logger.Println("saw a simple type", $$)
   SeenDataTypes = append(SeenDataTypes, $$)
 }
   | ListTypeToken FieldType
 {
   $$ = "[]" + $2
-  Logger.Println("saw a complex type", $$)
+  logger.Println("saw a complex type", $$)
 }
  | InlineStructDeclaration
 {

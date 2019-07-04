@@ -42,7 +42,7 @@ func Parse(inputStream string) (Result, error) {
 	//fmt.Println(logStream.String())
 	// Check if all seen data types were defined
 	for _, typeName := range SeenDataTypes {
-		if GlobalRepository[typeName] == nil {
+		if lex.result.typesRepository[typeName] == nil {
 			return lex.result, errors.New("Type '" + typeName + "' was not declared")
 		}
 	}
