@@ -49,6 +49,16 @@ func (res *Result) GetDataTypeNames() []string {
 	return keys
 }
 
+func (res *Result) FirstDataTypeSeen() string {
+	return res.declaredStructs[0]
+}
+
+func (res *Result) GenerateDataType() string{
+	return res.typesRepository[res.FirstDataTypeSeen()].Generate(res.typesRepository)
+}
+
+
+
 //Parse lexes and parses the file and returns the parsed text.
 func Parse(inputStream string) (Result, error) {
 	lex := newLexer(inputStream)
