@@ -2,6 +2,7 @@ package parser
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"testing"
 
@@ -196,11 +197,18 @@ func TestMapStuff(t *testing.T) {
 func TestRandomJsonGeneration(t *testing.T) {
 	result, err := Parse(`type test struct {
 		nombre string
+		primo Persona
 		edad int
 		gustosDeHelado []string
-	}`)
+	}
+	type Persona struct {
+		nombre string
+		telefono int
+	}
+	`)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	//fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
+	fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
+	t.Fail()
 	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
 }
