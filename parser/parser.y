@@ -61,7 +61,7 @@ StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
   newStruct := model.NewStructDataType(newStructName)
   for _,field := range $2 {
     // Already checked if struct fields datatype's exist
-    newStruct.AddFieldNamed(field.name)
+    newStruct.AddFieldNamed(field.name, field.datatypeName)
   }
   GlobalRepository[newStructName] = newStruct
 }

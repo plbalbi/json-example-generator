@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type structFieldMap map[string]DataType
+type structFieldMap map[string]string
 
 //StructDataType represents a struct type, which is a map-like structure. And
 //also is the main type to be outputed.
@@ -43,14 +43,30 @@ func (data *StructDataType) IsStruct() bool {
 	return true
 }
 
+func getType(repository DataTypeRepository, typeName string) DataType {
+	if typeName[0] != '[' {
+		return repository[typeName]
+	} else {
+		innerType := repository[typeName[2:]]
+		return &ListDataType{
+			name:      "",
+			innerType: innerType,
+		}
+	}
+}
+
 //Generate generates a random example of this datatype.
-func (data *StructDataType) Generate() string {
+func (data *StructDataType) Generate(repository DataTypeRepository) string {
+	fmt.Println("generating struct...")
 	var randomStructBuffer bytes.Buffer
 	randomStructBuffer.WriteString("{")
 	printedFieldCounter := 1
 	lastFieldNumber := len(data.fields)
-	for fieldName, fieldType := range data.fields {
-		randomStructBuffer.WriteString(fmt.Sprintf("\"%s\": %s", fieldName, fieldType.Generate()))
+	for fieldName, typeName := range data.fields {
+		fmt.Println("found field named", fieldName, "of type", typeName)
+		fieldType := getType(repository, typeName)
+		fmt.Println("type is", fieldType)
+		randomStructBuffer.WriteString(fmt.Sprintf("\"%s\": %s", fieldName, fieldType.Generate(repository)))
 		if printedFieldCounter < lastFieldNumber {
 			randomStructBuffer.WriteString(",")
 		}
@@ -65,7 +81,7 @@ func (data *StructDataType) Generate() string {
 //	- circular datatype definitions
 
 //AddFieldNamed adds a new field to the StructDataType.
-func (data *StructDataType) AddFieldNamed(aName string, aType DataType) error {
-	data.fields[aName] = aType
+func (data *StructDataType) AddFieldNamed(aName string, aTypeName string) error {
+	data.fields[aName] = aTypeName
 	return nil
 }

@@ -105,7 +105,7 @@ func TestRandomJsonGeneration(t *testing.T) {
 	}`)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	fmt.Println(result.typesRepository["test"].Generate())
+	fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
 	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
 }
 
@@ -136,6 +136,26 @@ func Test02(t *testing.T) {
 	`)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	//fmt.Println(result.typesRepository["test"].Generate())
+	fmt.Println(result.typesRepository)
+	fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
+	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
+}
+
+func Test03(t *testing.T) {
+	result, err := Parse(`
+	type test struct {
+		nombre string
+		edad int
+		gustosDeHelado [][]gusto
+	}
+	type gusto struct {
+		nombre string
+		granizado bool
+	}
+	`)
+	assert.NoError(t, err)
+	assert.NotNil(t, result)
+	fmt.Println(result.typesRepository)
+	fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
 	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
 }
