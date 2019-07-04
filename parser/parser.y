@@ -4,6 +4,7 @@ package parser
 import (
   "github.com/plbalbi/json-example-generator/model"
   "log"
+  "bytes"
 )
 
 func setResult(l yyLexer, v Result) {
@@ -13,6 +14,13 @@ func setResult(l yyLexer, v Result) {
 var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
 var SeenDataTypes []string = make([]string, 0)
 var Logger = log.Logger{}
+
+func InitParser(){
+  var logStream bytes.Buffer
+	GlobalRepository = model.GetDefaultDataTypeRepository()
+	SeenDataTypes = make([]string, 0)
+	Logger.SetOutput(&logStream)
+}
 
 %}
 

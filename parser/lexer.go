@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"bytes"
 	"errors"
 	"log"
 	"regexp"
@@ -36,11 +35,8 @@ type Result struct {
 //Parse lexes and parses the file and returns the parsed text.
 func Parse(inputStream string) (Result, error) {
 	lex := newLexer(inputStream)
-	var logStream bytes.Buffer
 	//Clearing global repository between parse calls
-	GlobalRepository = model.GetDefaultDataTypeRepository()
-	SeenDataTypes = make([]string, 0)
-	Logger.SetOutput(&logStream)
+	InitParser()
 	yyParse(lex)
 	//fmt.Println(logStream.String())
 	// Check if all seen data types were defined
