@@ -57,15 +57,12 @@ func getType(repository DataTypeRepository, typeName string) DataType {
 
 //Generate generates a random example of this datatype.
 func (data *StructDataType) Generate(repository DataTypeRepository) string {
-	fmt.Println("generating struct...")
 	var randomStructBuffer bytes.Buffer
 	randomStructBuffer.WriteString("{")
 	printedFieldCounter := 1
 	lastFieldNumber := len(data.fields)
 	for fieldName, typeName := range data.fields {
-		fmt.Println("found field named", fieldName, "of type", typeName)
 		fieldType := getType(repository, typeName)
-		fmt.Println("type is", fieldType)
 		randomStructBuffer.WriteString(fmt.Sprintf("\"%s\": %s", fieldName, fieldType.Generate(repository)))
 		if printedFieldCounter < lastFieldNumber {
 			randomStructBuffer.WriteString(",")

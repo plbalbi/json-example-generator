@@ -4,7 +4,6 @@ package parser
 import (
   "github.com/plbalbi/json-example-generator/model"
   "log"
-  "fmt"
 )
 
 func setResult(l yyLexer, v Result) {
@@ -13,6 +12,7 @@ func setResult(l yyLexer, v Result) {
 
 var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
 var SeenDataTypes []string = make([]string, 0)
+var Logger = log.Logger{}
 
 %}
 
@@ -86,12 +86,11 @@ Field: Identifier FieldType
 FieldType: Identifier
 {
   $$ = $1
-  fmt.Println("")
-  log.Println("saw a simple type", $$)
+  Logger.Println("saw a simple type", $$)
   SeenDataTypes = append(SeenDataTypes, $$)
 }
   | ListTypeToken FieldType
 {
   $$ = "[]" + $2
-  log.Println("saw a complex type", $$)
+  Logger.Println("saw a complex type", $$)
 }

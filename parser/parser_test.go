@@ -2,7 +2,6 @@ package parser
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"testing"
 
@@ -37,7 +36,7 @@ func TestParser(t *testing.T) {
 		{
 			"missing type declarations fails",
 			"type perro struct { hola perro que haces como va }",
-			errors.New("asd"),
+			errors.New("Type 'haces' was not declared"),
 			func(result *Result) bool { return model.CountStructDataTypes(result.typesRepository) == 1 },
 		},
 		{
@@ -76,7 +75,7 @@ func generateSingleParserTest(testCase simpleParserTestCase) func(*testing.T) {
 				t.Errorf("Expected to parse input correctly, but got this error: %s", err.Error())
 			}
 		}
-		fmt.Println(result.typesRepository)
+		//fmt.Println(result.typesRepository)
 		if !testCase.resultPredicate(&result) {
 			t.Errorf("Failed to evaluate test predicate")
 		}
@@ -101,7 +100,7 @@ func TestRandomJsonGeneration(t *testing.T) {
 	}`)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
+	//fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
 	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
 }
 
@@ -132,8 +131,8 @@ func Test02(t *testing.T) {
 	`)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	fmt.Println(result.typesRepository)
-	fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
+	//fmt.Println(result.typesRepository)
+	//fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
 	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
 }
 
@@ -151,7 +150,7 @@ func Test03(t *testing.T) {
 	`)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	fmt.Println(result.typesRepository)
-	fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
+	//fmt.Println(result.typesRepository)
+	//fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
 	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
 }
