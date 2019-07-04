@@ -27,6 +27,6 @@ func (data *SimpleDataType) IsStruct() bool {
 }
 
 //Generate generates a random example of this datatype.
-func (data *SimpleDataType) Generate() string {
+func (data *SimpleDataType) Generate(repository DataTypeRepository) string {
 	return data.generator()
 }

@@ -7,9 +7,8 @@ import (
 	"strings"
 	"text/scanner"
 
-	"github.com/plbalbi/json-example-generator/model"
-
 	"github.com/golang-collections/collections/queue"
+	"github.com/plbalbi/json-example-generator/model"
 )
 
 type lexer struct {
@@ -53,8 +52,15 @@ func (res *Result) GetDataTypeNames() []string {
 func Parse(inputStream string) (Result, error) {
 	lex := newLexer(inputStream)
 	//Clearing global repository between parse calls
-	GlobalRepository = model.GetDefaultDataTypeRepository()
+	InitParser()
 	yyParse(lex)
+	//fmt.Println(logStream.String())
+	// Check if all seen data types were defined
+	for _, typeName := range SeenDataTypes {
+		if GlobalRepository[typeName] == nil {
+			return lex.result, errors.New("Type '" + typeName + "' was not declared")
+		}
+	}
 	return lex.result, lex.err
 }
 
@@ -97,8 +103,6 @@ func (lex *lexer) doLex() {
 			lex.emitItemOfType(errorToken)
 		}
 		lex.emitItemOfType(ListTypeToken)
-		lex.scan.Scan()
-		lex.lexIdentifier()
 	default:
 		lex.lexIdentifier()
 	}

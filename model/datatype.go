@@ -9,5 +9,5 @@ type DataType interface {
 	IsSimple() bool
 	IsList() bool
 	IsStruct() bool
-	Generate() string
+	Generate(DataTypeRepository) string
 }

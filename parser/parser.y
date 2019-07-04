@@ -4,7 +4,7 @@ package parser
 import (
   "github.com/plbalbi/json-example-generator/model"
   "log"
-  "fmt"
+  "bytes"
 )
 
 func setResult(l yyLexer, v Result) {
@@ -12,14 +12,22 @@ func setResult(l yyLexer, v Result) {
 }
 
 var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
+var SeenDataTypes []string = make([]string, 0)
+var Logger = log.Logger{}
+
+func InitParser(){
+  var logStream bytes.Buffer
+	GlobalRepository = model.GetDefaultDataTypeRepository()
+	SeenDataTypes = make([]string, 0)
+	Logger.SetOutput(&logStream)
+}
 
 %}
 
 %union{
   declaredStructsCount int
   value string
-  newDataType model.DataType
-  isList bool
+  newDataType string
   parsedStructField fieldAndDataType
   allParsedStructFields []fieldAndDataType
 }
@@ -30,7 +38,6 @@ var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeReposito
 %type <declaredStructsCount> StructDeclarations
 %type <parsedStructField> Field
 %type <newDataType> FieldType
-%type <isList> ListOrNot
 %type <allParsedStructFields> StructFields
 
 %start main
@@ -61,7 +68,7 @@ StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
   newStruct := model.NewStructDataType(newStructName)
   for _,field := range $2 {
     // Already checked if struct fields datatype's exist
-    newStruct.AddFieldNamed(field.name, field.datatype)
+    newStruct.AddFieldNamed(field.name, field.datatypeName)
   }
   GlobalRepository[newStructName] = newStruct
 }
@@ -80,36 +87,18 @@ Field: Identifier FieldType
 {
   $$ = fieldAndDataType{
     name : $1,
-    datatype : $2,
+    datatypeName : $2,
   }
 }
 
-FieldType: ListOrNot Identifier
+FieldType: Identifier
 {
-  assembledDataTypeName := $2
-  if $1 {
-    assembledDataTypeName = fmt.Sprintf("[]%s", assembledDataTypeName)
-  }
-  if fromRepository := GlobalRepository[assembledDataTypeName]; fromRepository != nil {
-    $$ = fromRepository
-    log.Printf("Just saw a datatype named: %s", fromRepository.GetName())
-  } else {
-    if $1 {
-      if innerFromRepository := GlobalRepository[$2]; innerFromRepository != nil {
-        newListDataType := model.NewListDataType(assembledDataTypeName, innerFromRepository)
-        GlobalRepository[assembledDataTypeName] = newListDataType
-        log.Printf("Just created new list datatype named %s", assembledDataTypeName)
-        $$ = newListDataType
-      } else {
-        //Notify error
-        log.Printf("Could not found inner datatype named: %s", $2)
-      } 
-    } else {
-      //Notify error
-      log.Printf("Not valid datatype named: %s", $2)
-    }
-  }
+  $$ = $1
+  Logger.Println("saw a simple type", $$)
+  SeenDataTypes = append(SeenDataTypes, $$)
 }
-
-ListOrNot: {$$ = false}
-  | ListTypeToken {$$ = true}
+  | ListTypeToken FieldType
+{
+  $$ = "[]" + $2
+  Logger.Println("saw a complex type", $$)
+}
