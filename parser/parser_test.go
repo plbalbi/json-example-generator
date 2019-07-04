@@ -98,13 +98,52 @@ func TestParser(t *testing.T) {
 			[]string{"test", "gusto"},
 			func(result *Result) bool { return result.typesRepository["[]string"] == nil },
 		},
+		{
+			"test float64",
+			`
+			type persona struct {
+				nacionalidad pais
+				ventas []float64
+			  }
+			  type pais struct {
+				nombre string
+			  }
+			`,
+			nil,
+			[]string{"persona", "pais"},
+			func(result *Result) bool { return result.typesRepository["[]string"] == nil },
+		},
+		{
+			"test underscore in identifier is valid",
+			`
+			type persona struct {
+				color_pelo string
+			  }
+			`,
+			nil,
+			[]string{"persona"},
+			func(result *Result) bool { return result.typesRepository["[]string"] == nil },
+		},
+		{
+			"invalid character in identifier",
+			`
+			type persona struct {
+				color-pelo! string
+			  }
+			`,
+			errors.New("syntax error"),
+			nil,
+			func(result *Result) bool { return result.typesRepository["[]string"] == nil },
+		},
 	}
+	//TODO: inline structs
 
 	for _, testCase := range tests {
 		t.Run(testCase.testDescription, func(t *testing.T) {
 			result, err := Parse(testCase.input)
-			assert.Equal(t, err, testCase.expectedError)
-			assert.Equal(t, result.declaredStructs, testCase.expectedStructDeclarations)
+			//fmt.Println(result.logRegistry)
+			assert.Equal(t, testCase.expectedError, err)
+			assert.Equal(t, testCase.expectedStructDeclarations, result.declaredStructs)
 			//fmt.Println(result.typesRepository)
 			if !testCase.resultPredicate(&result) {
 				t.Errorf("Failed to evaluate test predicate")
