@@ -14,18 +14,19 @@ func setResult(l yyLexer, v Result) {
 var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
 var SeenDataTypes []string = make([]string, 0)
 var Logger = log.Logger{}
+var DeclaredStructs []string
 
 func InitParser(){
   var logStream bytes.Buffer
 	GlobalRepository = model.GetDefaultDataTypeRepository()
 	SeenDataTypes = make([]string, 0)
+  DeclaredStructs = make([]string, 0)
 	Logger.SetOutput(&logStream)
 }
 
 %}
 
 %union{
-  declaredStructsCount int
   value string
   newDataType string
   parsedStructField fieldAndDataType
@@ -35,7 +36,6 @@ func InitParser(){
 %token <value> Identifier
 %token TypeToken StructToken OpenCurlyBraceToken ClosingCurlyBraceToken ListTypeToken
 %type <value> StructOpening
-%type <declaredStructsCount> StructDeclarations
 %type <parsedStructField> Field
 %type <newDataType> FieldType
 %type <allParsedStructFields> StructFields
@@ -47,20 +47,14 @@ func InitParser(){
 main: StructDeclarations
 {
     setResult(yylex, Result{
-      structsCount: $1,
+      declaredStructs: DeclaredStructs,
       typesRepository: GlobalRepository,
       })
 }
 
 StructDeclarations: StructDeclaration
-{
-  $$ = 1
-}
 
 StructDeclarations: StructDeclaration StructDeclarations
-{
-  $$ = $2 + 1
-}
 
 StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
 {
@@ -71,6 +65,7 @@ StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
     newStruct.AddFieldNamed(field.name, field.datatypeName)
   }
   GlobalRepository[newStructName] = newStruct
+  DeclaredStructs = append(DeclaredStructs, newStructName)
 }
 
 StructOpening: TypeToken Identifier StructToken OpenCurlyBraceToken

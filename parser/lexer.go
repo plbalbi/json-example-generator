@@ -28,7 +28,7 @@ type lexedItem struct {
 
 //Result is the object in which the parser transmits the parsed text.
 type Result struct {
-	structsCount    int
+	declaredStructs []string
 	typesRepository model.DataTypeRepository
 }
 
