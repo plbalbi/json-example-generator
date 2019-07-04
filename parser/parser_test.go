@@ -136,8 +136,27 @@ func TestParser(t *testing.T) {
 			nil,
 			func(result *Result) bool { return result.typesRepository["[]string"] == nil },
 		},
+		{
+			"inline struct declaration",
+			`
+			type persona struct {
+				nombre string
+				primo struct{
+					nombre string
+				}
+				hermano struct{
+					edad int
+				}
+			  }
+			`,
+			nil,
+			[]string{"persona"},
+			func(result *Result) bool {
+				return result.typesRepository["[]string"] == nil
+			},
+		},
 	}
-	//TODO: inline structs
+	// TODO: multiple declarations
 
 	for _, testCase := range tests {
 		t.Run(testCase.testDescription, func(t *testing.T) {
@@ -145,7 +164,6 @@ func TestParser(t *testing.T) {
 			//fmt.Println(result.logRegistry)
 			assert.Equal(t, testCase.expectedError, err)
 			assert.Equal(t, testCase.expectedStructDeclarations, result.declaredStructs)
-			//fmt.Println(result.typesRepository)
 			if !testCase.resultPredicate(&result) {
 				t.Errorf("Failed to evaluate test predicate")
 			}

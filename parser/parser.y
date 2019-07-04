@@ -5,24 +5,44 @@ import (
   "github.com/plbalbi/json-example-generator/model"
   "log"
   "bytes"
+  "strconv"
 )
 
 func setResult(l yyLexer, v Result) {
   l.(*lexer).result = v
 }
 
-var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
 var SeenDataTypes []string = make([]string, 0)
-var Logger = log.Logger{}
-var DeclaredStructs []string
-var LogStream bytes.Buffer
+var globalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
+var logger = log.Logger{}
+var declaredStructs []string
+var logStream bytes.Buffer
+var freshIdentifier int
 
 func InitParser(){
-  LogStream = bytes.Buffer{}
-	GlobalRepository = model.GetDefaultDataTypeRepository()
+  logStream = bytes.Buffer{}
+	globalRepository = model.GetDefaultDataTypeRepository()
 	SeenDataTypes = make([]string, 0)
-  DeclaredStructs = make([]string, 0)
-	Logger.SetOutput(&LogStream)
+  declaredStructs = make([]string, 0)
+	logger.SetOutput(&logStream)
+}
+
+func RegisterNewStruct(name string, fields []fieldAndDataType){
+  newStruct := model.NewStructDataType(name)
+  for _, field := range fields {
+    newStruct.AddFieldNamed(field.name, field.datatypeName)
+  }
+  globalRepository[name] = newStruct
+}
+
+func generateFreshIdentifier() string{
+  for {
+    freshIdentifier += 1
+    id := "_f" + strconv.Itoa(freshIdentifier)
+    if globalRepository[id] == nil{
+      return id
+    }
+  }
 }
 
 %}
@@ -36,10 +56,11 @@ func InitParser(){
 
 %token <value> Identifier
 %token TypeToken StructToken OpenCurlyBraceToken ClosingCurlyBraceToken ListTypeToken
-%type <value> StructOpening
 %type <parsedStructField> Field
 %type <newDataType> FieldType
 %type <allParsedStructFields> StructFields
+%type <allParsedStructFields> InlineStructDeclaration
+%type <newDataType> TypeName
 
 %start main
 
@@ -48,9 +69,9 @@ func InitParser(){
 main: StructDeclarations
 {
     setResult(yylex, Result{
-      declaredStructs: DeclaredStructs,
-      typesRepository: GlobalRepository,
-      logRegistry: LogStream.String(),
+      declaredStructs: declaredStructs,
+      typesRepository: globalRepository,
+      logRegistry: logStream.String(),
     })
 }
 
@@ -58,23 +79,21 @@ StructDeclarations: StructDeclaration
 
 StructDeclarations: StructDeclaration StructDeclarations
 
-StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
+StructDeclaration: TypeName InlineStructDeclaration
 {
   newStructName := $1
-  newStruct := model.NewStructDataType(newStructName)
-  for _,field := range $2 {
-    // Already checked if struct fields datatype's exist
-    newStruct.AddFieldNamed(field.name, field.datatypeName)
-  }
-  GlobalRepository[newStructName] = newStruct
-  DeclaredStructs = append(DeclaredStructs, newStructName)
+  RegisterNewStruct(newStructName, $2)
+  declaredStructs = append(declaredStructs, newStructName)
 }
 
-StructOpening: TypeToken Identifier StructToken OpenCurlyBraceToken
+TypeName: TypeToken Identifier
 {
-  //Pass through struct name
-  //TODO: Maybe fail here if struct already defined?
   $$ = $2
+}
+
+InlineStructDeclaration: StructToken OpenCurlyBraceToken StructFields ClosingCurlyBraceToken
+{
+  $$ = $3
 }
 
 StructFields:  { $$ = make([]fieldAndDataType, 0) }
@@ -91,11 +110,16 @@ Field: Identifier FieldType
 FieldType: Identifier
 {
   $$ = $1
-  Logger.Println("saw a simple type", $$)
+  logger.Println("saw a simple type", $$)
   SeenDataTypes = append(SeenDataTypes, $$)
 }
   | ListTypeToken FieldType
 {
   $$ = "[]" + $2
-  Logger.Println("saw a complex type", $$)
+  logger.Println("saw a complex type", $$)
+}
+ | InlineStructDeclaration
+{
+  $$ = generateFreshIdentifier()
+  RegisterNewStruct($$, $1)
 }
