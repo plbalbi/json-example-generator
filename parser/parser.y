@@ -5,6 +5,7 @@ import (
   "github.com/plbalbi/json-example-generator/model"
   "log"
   "bytes"
+  "strconv"
 )
 
 func setResult(l yyLexer, v Result) {
@@ -16,6 +17,7 @@ var SeenDataTypes []string = make([]string, 0)
 var Logger = log.Logger{}
 var DeclaredStructs []string
 var LogStream bytes.Buffer
+var freshIdentifier int
 
 func InitParser(){
   LogStream = bytes.Buffer{}
@@ -23,6 +25,24 @@ func InitParser(){
 	SeenDataTypes = make([]string, 0)
   DeclaredStructs = make([]string, 0)
 	Logger.SetOutput(&LogStream)
+}
+
+func RegisterNewStruct(name string, fields []fieldAndDataType){
+  newStruct := model.NewStructDataType(name)
+  for _, field := range fields {
+    newStruct.AddFieldNamed(field.name, field.datatypeName)
+  }
+  GlobalRepository[name] = newStruct
+}
+
+func generateFreshIdentifier() string{
+  for {
+    freshIdentifier += 1
+    id := "_f" + strconv.Itoa(freshIdentifier)
+    if GlobalRepository[id] == nil{
+      return id
+    }
+  }
 }
 
 %}
@@ -36,10 +56,11 @@ func InitParser(){
 
 %token <value> Identifier
 %token TypeToken StructToken OpenCurlyBraceToken ClosingCurlyBraceToken ListTypeToken
-%type <value> StructOpening
 %type <parsedStructField> Field
 %type <newDataType> FieldType
 %type <allParsedStructFields> StructFields
+%type <allParsedStructFields> InlineStructDeclaration
+%type <newDataType> TypeName
 
 %start main
 
@@ -58,23 +79,21 @@ StructDeclarations: StructDeclaration
 
 StructDeclarations: StructDeclaration StructDeclarations
 
-StructDeclaration: StructOpening StructFields ClosingCurlyBraceToken
+StructDeclaration: TypeName InlineStructDeclaration
 {
   newStructName := $1
-  newStruct := model.NewStructDataType(newStructName)
-  for _,field := range $2 {
-    // Already checked if struct fields datatype's exist
-    newStruct.AddFieldNamed(field.name, field.datatypeName)
-  }
-  GlobalRepository[newStructName] = newStruct
+  RegisterNewStruct(newStructName, $2)
   DeclaredStructs = append(DeclaredStructs, newStructName)
 }
 
-StructOpening: TypeToken Identifier StructToken OpenCurlyBraceToken
+TypeName: TypeToken Identifier
 {
-  //Pass through struct name
-  //TODO: Maybe fail here if struct already defined?
   $$ = $2
+}
+
+InlineStructDeclaration: StructToken OpenCurlyBraceToken StructFields ClosingCurlyBraceToken
+{
+  $$ = $3
 }
 
 StructFields:  { $$ = make([]fieldAndDataType, 0) }
@@ -98,4 +117,9 @@ FieldType: Identifier
 {
   $$ = "[]" + $2
   Logger.Println("saw a complex type", $$)
+}
+ | InlineStructDeclaration
+{
+  $$ = generateFreshIdentifier()
+  RegisterNewStruct($$, $1)
 }
