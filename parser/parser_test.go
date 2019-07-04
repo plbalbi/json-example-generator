@@ -2,7 +2,6 @@ package parser
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"testing"
 
@@ -40,7 +39,7 @@ func TestParser(t *testing.T) {
 			// TODO: should this fail?
 			"single structs with one field is parsed correctly",
 			"type perro struct { hola perro }",
-			nil,
+			errors.New("Circular definition of type 'perro'"),
 			[]string{"perro"},
 			func(result *Result) bool { return model.CountStructDataTypes(result.typesRepository) == 1 },
 		},
@@ -169,6 +168,34 @@ func TestParser(t *testing.T) {
 			[]string{"persona", "persona"},
 			nil,
 		},
+		{
+			"autoreferencing struct is invalid",
+			`
+			type persona struct {
+				hermano persona
+			}
+			`,
+			errors.New("Circular definition of type 'persona'"),
+			[]string{"persona"},
+			nil,
+		},
+		{
+			"indirect struct circular definition is invalid",
+			`
+			type persona struct {
+				auto transporte
+			}
+			type transporte struct {
+				asiento butaca
+			}
+			type butaca struct {
+				pasajero persona
+			}
+			`,
+			errors.New("Circular definition of type 'persona'"),
+			[]string{"persona", "transporte", "butaca"},
+			nil,
+		},
 	}
 
 	for _, testCase := range tests {
@@ -208,7 +235,6 @@ func TestRandomJsonGeneration(t *testing.T) {
 	`)
 	assert.NoError(t, err)
 	assert.NotNil(t, result)
-	fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
-	t.Fail()
+	//fmt.Println(result.typesRepository["test"].Generate(result.typesRepository))
 	//t.Logf("Parser got:\n%s", result.typesRepository["test"].Generate())
 }

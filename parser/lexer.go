@@ -28,9 +28,10 @@ type lexedItem struct {
 
 //Result is the object in which the parser transmits the parsed text.
 type Result struct {
-	declaredStructs []string
-	typesRepository model.DataTypeRepository
-	logRegistry     string
+	declaredStructs       []string
+	typesRepository       model.DataTypeRepository
+	logRegistry           string
+	structDependencyGraph map[string][]string
 }
 
 func (res *Result) StructsCount() int {
@@ -63,7 +64,6 @@ func Parse(inputStream string) (Result, error) {
 	//Clearing global repository between parse calls
 	InitParser()
 	yyParse(lex)
-	//fmt.Println(logStream.String())
 
 	// Check if all seen data types were defined
 	for _, typeName := range SeenDataTypes {
@@ -81,7 +81,38 @@ func Parse(inputStream string) (Result, error) {
 		seenTypeDeclarations[typeName] = true
 	}
 
+	// Look for circular definitons
+	for typeName, _ := range lex.result.structDependencyGraph {
+		if reachesSelf(typeName, structDependencyGraph) {
+			return lex.result, errors.New("Circular definition of type '" + typeName + "'")
+		}
+	}
 	return lex.result, lex.err
+}
+
+func reachesSelf(typeName string, structDependencyGraph map[string][]string) bool {
+	if structDependencyGraph[typeName] == nil {
+		return false
+	}
+	// DFS
+	seen := make(map[string]bool)
+	var lefts queue.Queue
+	lefts.Enqueue(typeName)
+	for lefts.Len() > 0 {
+		current := lefts.Dequeue().(string)
+		if seen[current] {
+			return true
+		} else {
+			seen[current] = true
+			for _, neighbour := range structDependencyGraph[current] {
+				// We only care about structs, it may not be one
+				if structDependencyGraph[neighbour] != nil {
+					lefts.Enqueue(neighbour)
+				}
+			}
+		}
+	}
+	return false
 }
 
 // TODO: This could be concurrent. The lexer runs on one routine, feeding the parsed tokens into a channel,

@@ -18,12 +18,14 @@ var logger = log.Logger{}
 var declaredStructs []string
 var logStream bytes.Buffer
 var freshIdentifier int
+var structDependencyGraph map[string][]string
 
 func InitParser(){
   logStream = bytes.Buffer{}
 	globalRepository = model.GetDefaultDataTypeRepository()
 	SeenDataTypes = make([]string, 0)
   declaredStructs = make([]string, 0)
+  structDependencyGraph = make(map[string][]string, 0)
 	logger.SetOutput(&logStream)
 }
 
@@ -72,6 +74,7 @@ main: StructDeclarations
       declaredStructs: declaredStructs,
       typesRepository: globalRepository,
       logRegistry: logStream.String(),
+      structDependencyGraph: structDependencyGraph,
     })
 }
 
@@ -84,6 +87,11 @@ StructDeclaration: TypeName InlineStructDeclaration
   newStructName := $1
   RegisterNewStruct(newStructName, $2)
   declaredStructs = append(declaredStructs, newStructName)
+  var adyacents []string
+  for _, field := range $2 {
+    adyacents = append(adyacents, field.datatypeName)
+  }
+  structDependencyGraph[newStructName] = adyacents
 }
 
 TypeName: TypeToken Identifier
