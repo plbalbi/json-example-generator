@@ -5,7 +5,7 @@ import(
 	"fmt"
 	"io/ioutil"
 	"os"
-	// "github.com/plbalbi/json-example-generator/model"
+	"log"
 	"github.com/plbalbi/json-example-generator/parser"
 )
 
@@ -16,41 +16,40 @@ func check(e error) {
 }
 
 func main() {
-	fmt.Println("Hello Cats!")
 	flag.Parse()
 	var data []byte
 	var err error
 	switch flag.NArg() {
-	case 0:
-		fmt.Println("Parsing from stdin...")
-		data, err = ioutil.ReadAll(os.Stdin)
-		check(err)
+		case 0:
+			fmt.Println("Parsing from stdin...")
+			data, err = ioutil.ReadAll(os.Stdin)
+			check(err)
+			break
+		case 1:
+			fmt.Println("Parsing from file...")
+			data, err = ioutil.ReadFile(flag.Arg(0))
+			check(err)
+			break
+		default:
+			fmt.Printf("input must be from stdin or file\n")
+			os.Exit(1)
+	}
 
-		stringToParse := string(data)
-		fmt.Println("String to be parsed:")
-		fmt.Println(stringToParse)
-		
-		
-		lexResult, lexError := parser.Parse(stringToParse)
-		if lexError != nil {
-			fmt.Printf("Errors: %v\n", lexError)	
-		}
-		
+	stringToParse := string(data)
+	fmt.Println("String to be parsed:")
+	fmt.Println(stringToParse)
+	
+	
+	lexResult, lexError := parser.Parse(stringToParse)
+	if lexError != nil {
+		log.Printf("Errors: %v\n", lexError)
+
+	} else {
 		fmt.Printf("Datatypes counted: %v\n", lexResult.StructsCount())
 		fmt.Printf("First datatype seen: %v\n", lexResult.FirstDataTypeSeen())
 		generatedStruct := lexResult.GenerateDataType()
 		fmt.Println(generatedStruct)
-
-		
-		break
-	case 1:
-		data, err = ioutil.ReadFile(flag.Arg(0))
-		check(err)
-		fmt.Printf("file data: %v\n", string(data))
-		break
-	default:
-		fmt.Printf("input must be from stdin or file\n")
-		os.Exit(1)
 	}
-	
+
+
 }
