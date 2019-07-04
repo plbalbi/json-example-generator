@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"testing"
@@ -34,9 +35,9 @@ func TestParser(t *testing.T) {
 			func(result *Result) bool { return model.CountStructDataTypes(result.typesRepository) == 1 },
 		},
 		{
-			"single structs with three field is parsed correctly",
+			"missing type declarations fails",
 			"type perro struct { hola perro que haces como va }",
-			nil,
+			errors.New("asd"),
 			func(result *Result) bool { return model.CountStructDataTypes(result.typesRepository) == 1 },
 		},
 		{
@@ -46,16 +47,10 @@ func TestParser(t *testing.T) {
 			func(result *Result) bool { return model.CountStructDataTypes(result.typesRepository) == 1 },
 		},
 		{
-			"struct with list type gets it registered in repository",
+			"slices are not registered in repository ",
 			"type gato struct { hola []string }",
-			nil,
-			func(result *Result) bool { return result.typesRepository["[]string"] != nil },
-		},
-		{
-			"struct with non existing inner type omits registering corresponding list type",
-			"type gato struct { hola []falopa }",
-			nil,
-			func(result *Result) bool { return result.typesRepository["[]falopa"] == nil },
+			errors.New("asd"),
+			func(result *Result) bool { return result.typesRepository["[]string"] == nil },
 		},
 	}
 
@@ -75,12 +70,13 @@ func generateSingleParserTest(testCase simpleParserTestCase) func(*testing.T) {
 	return func(t *testing.T) {
 		result, err := Parse(testCase.input)
 		if err != nil {
-			if testCase.expectedError != nil && err.Error() != testCase.expectedError.Error() {
-				t.Errorf("An error with message '%s' was expected, but got '%s'", testCase.expectedError.Error(), err.Error())
+			if testCase.expectedError != nil {
+				assert.EqualError(t, err, testCase.expectedError.Error())
 			} else {
 				t.Errorf("Expected to parse input correctly, but got this error: %s", err.Error())
 			}
 		}
+		fmt.Println(result.typesRepository)
 		if !testCase.resultPredicate(&result) {
 			t.Errorf("Failed to evaluate test predicate")
 		}
@@ -146,7 +142,7 @@ func Test03(t *testing.T) {
 	type test struct {
 		nombre string
 		edad int
-		gustosDeHelado [][]gusto
+		gustosDeHelado []gusto
 	}
 	type gusto struct {
 		nombre string

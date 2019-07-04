@@ -47,9 +47,9 @@ func getType(repository DataTypeRepository, typeName string) DataType {
 	if typeName[0] != '[' {
 		return repository[typeName]
 	} else {
-		innerType := repository[typeName[2:]]
+		innerType := getType(repository, typeName[2:])
 		return &ListDataType{
-			name:      "",
+			name:      typeName,
 			innerType: innerType,
 		}
 	}

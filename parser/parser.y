@@ -12,6 +12,7 @@ func setResult(l yyLexer, v Result) {
 }
 
 var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeRepository()
+var SeenDataTypes []string = make([]string, 0)
 
 %}
 
@@ -19,7 +20,6 @@ var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeReposito
   declaredStructsCount int
   value string
   newDataType string
-  isList bool
   parsedStructField fieldAndDataType
   allParsedStructFields []fieldAndDataType
 }
@@ -30,7 +30,6 @@ var GlobalRepository model.DataTypeRepository = model.GetDefaultDataTypeReposito
 %type <declaredStructsCount> StructDeclarations
 %type <parsedStructField> Field
 %type <newDataType> FieldType
-%type <isList> ListOrNot
 %type <allParsedStructFields> StructFields
 
 %start main
@@ -84,33 +83,15 @@ Field: Identifier FieldType
   }
 }
 
-FieldType: ListOrNot Identifier
+FieldType: Identifier
 {
-  assembledDataTypeName := $2
-  if $1 {
-    assembledDataTypeName = fmt.Sprintf("[]%s", assembledDataTypeName)
-  }
-  $$ = assembledDataTypeName
-  if fromRepository := GlobalRepository[assembledDataTypeName]; fromRepository != nil {
-    //$$ = fromRepository
-    log.Printf("Just saw a datatype named: %s", fromRepository.GetName())
-  } else {
-    if $1 {
-      if innerFromRepository := GlobalRepository[$2]; innerFromRepository != nil {
-        newListDataType := model.NewListDataType(assembledDataTypeName, innerFromRepository)
-        GlobalRepository[assembledDataTypeName] = newListDataType
-        log.Printf("Just created new list datatype named %s", assembledDataTypeName)
-        //$$ = newListDataType
-      } else {
-        //Notify error
-        log.Printf("Could not found inner datatype named: %s", $2)
-      } 
-    } else {
-      //Notify error
-      log.Printf("Not valid datatype named: %s", $2)
-    }
-  }
+  $$ = $1
+  fmt.Println("")
+  log.Println("saw a simple type", $$)
+  SeenDataTypes = append(SeenDataTypes, $$)
 }
-
-ListOrNot: {$$ = false}
-  | ListTypeToken {$$ = true}
+  | ListTypeToken FieldType
+{
+  $$ = "[]" + $2
+  log.Println("saw a complex type", $$)
+}
