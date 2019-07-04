@@ -43,8 +43,8 @@ func (res *Result) GetDataTypeNames() []string {
 
 	i := 0
 	for k := range res.typesRepository {
-    	keys[i] = k
-    	i++
+		keys[i] = k
+		i++
 	}
 	return keys
 }
@@ -53,11 +53,9 @@ func (res *Result) FirstDataTypeSeen() string {
 	return res.declaredStructs[0]
 }
 
-func (res *Result) GenerateDataType() string{
+func (res *Result) GenerateDataType() string {
 	return res.typesRepository[res.FirstDataTypeSeen()].Generate(res.typesRepository)
 }
-
-
 
 //Parse lexes and parses the file and returns the parsed text.
 func Parse(inputStream string) (Result, error) {
@@ -66,12 +64,23 @@ func Parse(inputStream string) (Result, error) {
 	InitParser()
 	yyParse(lex)
 	//fmt.Println(logStream.String())
+
 	// Check if all seen data types were defined
 	for _, typeName := range SeenDataTypes {
 		if lex.result.typesRepository[typeName] == nil {
 			return lex.result, errors.New("Type '" + typeName + "' was not declared")
 		}
 	}
+
+	// Check if a type definition was seen more than once
+	seenTypeDeclarations := make(map[string]bool)
+	for _, typeName := range lex.result.declaredStructs {
+		if seenTypeDeclarations[typeName] {
+			return lex.result, errors.New("Multiple declarations of type '" + typeName + "'")
+		}
+		seenTypeDeclarations[typeName] = true
+	}
+
 	return lex.result, lex.err
 }
 

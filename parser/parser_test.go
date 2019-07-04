@@ -154,8 +154,21 @@ func TestParser(t *testing.T) {
 				return result.typesRepository["[]string"] == nil
 			},
 		},
+		{
+			"multiple declarations of struct is not valid",
+			`
+			type persona struct {
+				nombre string
+			}
+			type persona struct {
+				edad int
+			}
+			`,
+			errors.New("Multiple declarations of type 'persona'"),
+			[]string{"persona", "persona"},
+			nil,
+		},
 	}
-	// TODO: multiple declarations
 
 	for _, testCase := range tests {
 		t.Run(testCase.testDescription, func(t *testing.T) {
@@ -163,7 +176,7 @@ func TestParser(t *testing.T) {
 			//fmt.Println(result.logRegistry)
 			assert.Equal(t, testCase.expectedError, err)
 			assert.Equal(t, testCase.expectedStructDeclarations, result.declaredStructs)
-			if !testCase.resultPredicate(&result) {
+			if testCase.resultPredicate != nil && !testCase.resultPredicate(&result) {
 				t.Errorf("Failed to evaluate test predicate")
 			}
 		})
