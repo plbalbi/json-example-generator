@@ -33,6 +33,22 @@ type Result struct {
 	typesRepository model.DataTypeRepository
 }
 
+func (res *Result) StructsCount() int {
+	// return res.structsCount
+	return model.CountStructDataTypes(res.typesRepository)
+}
+
+func (res *Result) GetDataTypeNames() []string {
+	keys := make([]string, len(res.typesRepository))
+
+	i := 0
+	for k := range res.typesRepository {
+    	keys[i] = k
+    	i++
+	}
+	return keys
+}
+
 //Parse lexes and parses the file and returns the parsed text.
 func Parse(inputStream string) (Result, error) {
 	lex := newLexer(inputStream)
