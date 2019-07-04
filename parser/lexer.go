@@ -33,6 +33,32 @@ type Result struct {
 	logRegistry     string
 }
 
+func (res *Result) StructsCount() int {
+	// return res.structsCount
+	return model.CountStructDataTypes(res.typesRepository)
+}
+
+func (res *Result) GetDataTypeNames() []string {
+	keys := make([]string, len(res.typesRepository))
+
+	i := 0
+	for k := range res.typesRepository {
+    	keys[i] = k
+    	i++
+	}
+	return keys
+}
+
+func (res *Result) FirstDataTypeSeen() string {
+	return res.declaredStructs[0]
+}
+
+func (res *Result) GenerateDataType() string{
+	return res.typesRepository[res.FirstDataTypeSeen()].Generate(res.typesRepository)
+}
+
+
+
 //Parse lexes and parses the file and returns the parsed text.
 func Parse(inputStream string) (Result, error) {
 	lex := newLexer(inputStream)
