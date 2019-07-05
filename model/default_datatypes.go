@@ -6,12 +6,18 @@ import (
 	"time"
 )
 
-var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-//TODO: Improve this. Doing it as quick as possible
-
 //DataTypeRepository is the central collection of all DataTypes
 type DataTypeRepository map[string]DataType
+type seedProvider func() int64
+
+const testRandomSeed = 42
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+const stringTypeName = "string"
+const intTypeName = "int"
+const floatTypeName = "float64"
+const boolTypeName = "bool"
 
 //Helpers. Maybe the repository should be abstracted
 
@@ -26,47 +32,72 @@ func CountStructDataTypes(repository DataTypeRepository) int {
 	return count
 }
 
-//TODO: Add SimpleDataType constructor
-//TODO: Improve random generators
+func newRandomStringGenerator(randomGenerator *rand.Rand) exampleGenerator {
+	return func() string {
+		length := randomGenerator.Intn(20)
+		randString := make([]rune, length)
+		for i := range randString {
+			randString[i] = letters[randomGenerator.Intn(len(letters))]
+		}
+		return `"` + string(randString) + `"`
+	}
+}
 
-//GetDefaultDataTypeRepository bootrstraps the initial repository, of the most
-//common or default DataTypes. From them all others all built.
-func GetDefaultDataTypeRepository() DataTypeRepository {
+func newRandomIntGenerator(randomGenerator *rand.Rand) exampleGenerator {
+	return func() string {
+		return strconv.Itoa(randomGenerator.Int() % 10000)
+	}
+}
+
+func newRandomFloatGenerator(randomGenerator *rand.Rand) exampleGenerator {
+	return func() string {
+		return strconv.FormatFloat(randomGenerator.Float64()*1000, 'f', 3, 32)
+	}
+}
+
+func newRandomBoolGenerator(randomGenerator *rand.Rand) exampleGenerator {
+	return func() string {
+		return []string{"true", "false"}[randomGenerator.Int()%2]
+	}
+}
+
+//TODO: Add SimpleDataType constructor
+
+func generateRepositoryWithRandomSeed(provider seedProvider) DataTypeRepository {
 	repository := make(DataTypeRepository)
-	randomGenerator := rand.New(rand.NewSource(time.Now().UnixNano()))
+	randomGenerator := rand.New(rand.NewSource(provider()))
 
 	//string
-	repository["string"] = &SimpleDataType{
-		name: "string",
-		generator: func() string {
-			length := randomGenerator.Intn(20)
-			randString := make([]rune, length)
-			for i := range randString {
-				randString[i] = letters[randomGenerator.Intn(len(letters))]
-			}
-			return `"` + string(randString) + `"`
-		},
+	repository[stringTypeName] = &SimpleDataType{
+		name:      stringTypeName,
+		generator: newRandomStringGenerator(randomGenerator),
 	}
 	//int
-	repository["int"] = &SimpleDataType{
-		name: "int",
-		generator: func() string {
-			return strconv.Itoa(randomGenerator.Int() % 10000)
-		},
+	repository[intTypeName] = &SimpleDataType{
+		name:      intTypeName,
+		generator: newRandomIntGenerator(randomGenerator),
 	}
 	//float64
-	repository["float64"] = &SimpleDataType{
-		name: "float64",
-		generator: func() string {
-			return strconv.FormatFloat(randomGenerator.Float64()*1000, 'f', 3, 32)
-		},
+	repository[floatTypeName] = &SimpleDataType{
+		name:      floatTypeName,
+		generator: newRandomFloatGenerator(randomGenerator),
 	}
 	//bool
-	repository["bool"] = &SimpleDataType{
-		name: "bool",
-		generator: func() string {
-			return []string{"true", "false"}[randomGenerator.Int()%2]
-		},
+	repository[boolTypeName] = &SimpleDataType{
+		name:      boolTypeName,
+		generator: newRandomBoolGenerator(randomGenerator),
 	}
 	return repository
+}
+
+//GetDefaultDataTypeRepository bootstraps the initial repository, of the most
+//common or default DataTypes. From them all others all built.
+func GetDefaultDataTypeRepository() DataTypeRepository {
+	return generateRepositoryWithRandomSeed(func() int64 { return time.Now().UnixNano() })
+}
+
+//GetTestDataTypeRepository gives a new test DataTypeRepository, which initial datatypes
+//use a fixed initial seed to give deterministic results each time.
+func GetTestDataTypeRepository() DataTypeRepository {
+	return generateRepositoryWithRandomSeed(func() int64 { return testRandomSeed })
 }
