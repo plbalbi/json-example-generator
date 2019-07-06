@@ -83,12 +83,6 @@ func (data *StructDataType) Generate(repository DataTypeRepository) string {
 	return randomStructBuffer.String()
 }
 
-
-//Generate generates a random example of this datatype.
-func (data *StructDataType) Generate(repository DataTypeRepository) string {
-	return data.GenerateWithIndentationPrefix(repository, "")
-}
-
 //AddFieldNamed adds a new field to the StructDataType.
 func (data *StructDataType) AddFieldNamed(aName string, aTypeName string) error {
 	data.fields[aName] = aTypeName
