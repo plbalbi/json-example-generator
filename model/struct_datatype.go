@@ -57,6 +57,11 @@ func getType(repository DataTypeRepository, typeName string) DataType {
 
 //GenerateWithIndentationPrefix generates a random example of this datatype, with a provided indetation level.
 func (data *StructDataType) GenerateWithIndentationPrefix(repository DataTypeRepository, indentationPrefix string) string {
+	return data.Generate(repository)
+}
+
+//Generate generates a random example of this datatype.
+func (data *StructDataType) Generate(repository DataTypeRepository) string {
 	var randomStructBuffer bytes.Buffer
 	randomStructBuffer.WriteString("{\n")
 	printedFieldCounter := 1
@@ -65,27 +70,17 @@ func (data *StructDataType) GenerateWithIndentationPrefix(repository DataTypeRep
 		fieldType := getType(repository, typeName)
 		if fieldType.IsStruct() {
 			fieldTypeAsStruct := fieldType.(*StructDataType)
-			randomStructBuffer.WriteString(fmt.Sprintf("%s\t\"%s\": %s",
-				indentationPrefix,
-				fieldName,
-				fieldTypeAsStruct.GenerateWithIndentationPrefix(
-					repository,
-					fmt.Sprintf("\t%s", indentationPrefix))))
+			randomStructBuffer.WriteString(fmt.Sprintf("\t\"%s\": %s", fieldName, fieldTypeAsStruct.GenerateWithIndentationPrefix(repository, "\t")))
 		} else {
-			randomStructBuffer.WriteString(fmt.Sprintf("%s\t\"%s\": %s", indentationPrefix, fieldName, fieldType.Generate(repository)))
+			randomStructBuffer.WriteString(fmt.Sprintf("\t\"%s\": %s", fieldName, fieldType.Generate(repository)))
 		}
 		if printedFieldCounter < lastFieldNumber {
 			randomStructBuffer.WriteString(",\n")
 		}
 		printedFieldCounter++
 	}
-	randomStructBuffer.WriteString(fmt.Sprintf("\n%s}", indentationPrefix))
+	randomStructBuffer.WriteString("\n}")
 	return randomStructBuffer.String()
-}
-
-//Generate generates a random example of this datatype.
-func (data *StructDataType) Generate(repository DataTypeRepository) string {
-	return data.GenerateWithIndentationPrefix(repository, "")
 }
 
 //TODO: handle errors when:
