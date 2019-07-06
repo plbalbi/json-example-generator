@@ -1,0 +1,42 @@
+-----------------------------------------------------------------------------
+---------------------------------lexer.go--------------------------
+
+// TODO: Log only on some debug mode?
+func (lex *lexer) scanAndLog() string 
+
+
+func (lex *lexer) lexIdentifier() 
+scannedTokenText := lex.scan.TokenText()
+// TODO: Change this regex for sth else. Too overkill!
+
+
+// TODO: Implement lexer/parser error handling.
+func (lex *lexer) Error(message string)
+
+
+// TODO: This could be concurrent. The lexer runs on one routine, feeding the parsed tokens into a channel,
+// while the parser consumes from there. Some buffering can be added, so the lexer does not overfill. Also,
+// to communicate the values attached to certain tokens, some kind of tokenWithAttachment struct could be used,
+// and the Lex methods consumes from the channel, and separates the tokenType from the tokenAttachment.
+
+//Lex is somehow like the tokenStream.next() called it time it needs by the parser.
+func (lex *lexer) Lex(currentSymType *yySymType) int
+
+
+
+
+-----------------------------------------------------------------------------
+---------------------------------struct_datatype.go--------------------------
+//TODO: handle errors when:
+//	- already a field with name aName
+//	- circular datatype definitions
+
+//AddFieldNamed adds a new field to the StructDataType.
+func (data *StructDataType) AddFieldNamed(aName string, aTypeName string) error 
+
+
+
+-----------------------------------------------------------------------------
+---------------------------------default_datatype.go-------------------------
+
+//TODO: Add SimpleDataType constructor
