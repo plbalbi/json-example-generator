@@ -54,6 +54,7 @@ func (res *Result) FirstDataTypeSeen() string {
 }
 
 func (res *Result) GenerateDataType() string {
+	model.MaxRandomListSize = 10
 	return res.typesRepository[res.FirstDataTypeSeen()].Generate(res.typesRepository)
 }
 
@@ -117,7 +118,6 @@ func reachesSelf(typeName string, structDependencyGraph map[string][]string) boo
 	}
 	return false
 }
-
 
 //Lex is somehow like the tokenStream.next() called it time it needs by the parser.
 func (lex *lexer) Lex(currentSymType *yySymType) int {
