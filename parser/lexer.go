@@ -64,6 +64,10 @@ func Parse(inputStream string) (Result, error) {
 	InitParser()
 	yyParse(lex)
 
+	if lex.err != nil {
+		return lex.result, lex.err
+	}
+
 	// Check if all seen data types were defined
 	for _, typeName := range SeenDataTypes {
 		if lex.result.typesRepository[typeName] == nil {
@@ -86,7 +90,7 @@ func Parse(inputStream string) (Result, error) {
 			return lex.result, errors.New("Circular definition of type '" + typeName + "'")
 		}
 	}
-	return lex.result, lex.err
+	return lex.result, nil
 }
 
 func reachesSelf(typeName string, structDependencyGraph map[string][]string) bool {
