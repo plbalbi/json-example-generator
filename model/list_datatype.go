@@ -8,8 +8,7 @@ import (
 
 const maxRandomListSize = 10
 
-//ListDataType represents a list type, containing multiple elements of a certain
-//DataType.
+//ListDataType represents a list type, containing multiple elements of a certain DataType.
 type ListDataType struct {
 	name      string
 	innerType DataType

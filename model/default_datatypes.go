@@ -61,7 +61,6 @@ func newRandomBoolGenerator(randomGenerator *rand.Rand) exampleGenerator {
 	}
 }
 
-//TODO: Add SimpleDataType constructor
 
 func generateRepositoryWithRandomSeed(provider seedProvider) DataTypeRepository {
 	repository := make(DataTypeRepository)

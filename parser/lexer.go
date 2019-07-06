@@ -35,7 +35,6 @@ type Result struct {
 }
 
 func (res *Result) StructsCount() int {
-	// return res.structsCount
 	return model.CountStructDataTypes(res.typesRepository)
 }
 
@@ -115,10 +114,6 @@ func reachesSelf(typeName string, structDependencyGraph map[string][]string) boo
 	return false
 }
 
-// TODO: This could be concurrent. The lexer runs on one routine, feeding the parsed tokens into a channel,
-// while the parser consumes from there. Some buffering can be added, so the lexer does not overfill. Also,
-// to communicate the values attached to certain tokens, some kind of tokenWithAttachment struct could be used,
-// and the Lex methods consumes from the channel, and separates the tokenType from the tokenAttachment.
 
 //Lex is somehow like the tokenStream.next() called it time it needs by the parser.
 func (lex *lexer) Lex(currentSymType *yySymType) int {
@@ -131,7 +126,6 @@ func (lex *lexer) Lex(currentSymType *yySymType) int {
 	return oldestLexedItem.itemType
 }
 
-// TODO: Implement lexer/parser error handling.
 func (lex *lexer) Error(message string) {
 	lex.err = errors.New(message)
 }
@@ -161,13 +155,12 @@ func (lex *lexer) doLex() {
 
 func (lex *lexer) lexIdentifier() {
 	scannedTokenText := lex.scan.TokenText()
-	// TODO: Change this regex for sth else. Too overkill!
 	if strings.HasPrefix(scannedTokenText, "[]") {
 		// It's a list type
 		lex.emitItemOfType(ListTypeToken)
 		scannedTokenText = scannedTokenText[2:]
 	}
-	identifierMatcher := regexp.MustCompile(`^[a-zA-Z,0-9,_]+$`).MatchString
+	identifierMatcher := regexp.MustCompile(`^[a-zA-Z0-9_]+$`).MatchString
 	if !identifierMatcher(scannedTokenText) {
 		lex.emitItemOfType(errorToken)
 	}
@@ -181,7 +174,6 @@ func (lex *lexer) emitItemOfType(emittedItemType int) {
 	})
 }
 
-// TODO: Log only on some debug mode?
 func (lex *lexer) scanAndLog() string {
 	lex.scan.Scan()
 	log.Printf("%s: %s", lex.scan.Position, lex.scan.TokenText())

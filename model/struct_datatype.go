@@ -88,10 +88,6 @@ func (data *StructDataType) Generate(repository DataTypeRepository) string {
 	return data.GenerateWithIndentationPrefix(repository, "")
 }
 
-//TODO: handle errors when:
-//	- already a field with name aName
-//	- circular datatype definitions
-
 //AddFieldNamed adds a new field to the StructDataType.
 func (data *StructDataType) AddFieldNamed(aName string, aTypeName string) error {
 	data.fields[aName] = aTypeName
