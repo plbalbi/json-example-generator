@@ -1,0 +1,10 @@
+type test struct {
+	nombre string
+	edad int
+	gustosDeHelado []gusto
+}
+
+type gusto struct {
+	nombre string
+	granizado bool
+}
