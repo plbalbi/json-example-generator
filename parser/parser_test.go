@@ -180,6 +180,18 @@ func TestParser(t *testing.T) {
 			nil,
 		},
 		{
+			"syntax error over semantic error",
+			`
+			type persona struct {
+				primo persona
+			}
+			c
+			`,
+			errors.New("syntax error"),
+			[]string{"persona"},
+			nil,
+		},
+		{
 			"indirect struct circular definition is invalid",
 			`
 			type persona struct {
