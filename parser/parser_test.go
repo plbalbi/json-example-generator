@@ -36,14 +36,6 @@ func TestParser(t *testing.T) {
 			},
 		},
 		{
-			// TODO: should this fail?
-			"single structs with one field is parsed correctly",
-			"type perro struct { hola perro }",
-			errors.New("Circular definition of type 'perro'"),
-			[]string{"perro"},
-			func(result *Result) bool { return model.CountStructDataTypes(result.typesRepository) == 1 },
-		},
-		{
 			"single structs single list field is parsed correctly",
 			"type perro struct { hola []int }",
 			nil,
